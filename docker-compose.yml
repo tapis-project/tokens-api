@@ -1,0 +1,38 @@
+---
+
+version: "3.5"
+
+networks:
+    tokens:
+        driver: bridge
+
+volumes:
+    pgdata:
+
+services:
+#    postgres:
+#        image: postgres:9.4
+#        volumes:
+#            - pgdata:/var/lib/postgresql/data
+#        networks:
+#            - tokens
+#
+#    migrations:
+#        image: tapis/tokens-api-migrations
+#        volumes:
+#            - ./config-local.json:/home/tapis/config.json
+#        networks:
+#            - tokens
+#
+    tokens:
+        image: tapis/tokens-api
+        ports:
+            - "5001:5000"
+        volumes:
+            - ./config-local.json:/home/tapis/config.json
+            - ./service.log:/home/tapis/service.log
+        networks:
+            - tokens
+#        depends_on:
+#            - postgres
+

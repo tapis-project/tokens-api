@@ -1,0 +1,27 @@
+{
+  "$id": "http://github.com/tapis-project/tokens-api/tokens-api/configschema.json",
+  "$schema": "http://json-schema.org/schema#",
+  "properties": {
+    "sql_db_url": {
+      "type": "string",
+      "description": "full URL, including protocol and database, to the SQL db.",
+      "default": "postgres://tenants:d3fd6pAssw0rd@postgres:5432/tenants"
+    },
+    "dev_jwt_private_key": {
+      "type": "string",
+      "description": "A private key to use for signing JWTs in dev mode. NOTE: This should NOT be used in production",
+      "default": "-----BEGIN RSA PRIVATE KEY-----\nMIICXAIBAAKBgQDJtGvK8P6tP+K35PIxh713Vw0ZecWNaK31Lkz7aSJJYKNZ4gpg S+5+5bRZCzoNs3DSho3wh2g6sipnvOzo35bIo2Pb6SJ3rk3/PJ6SsyR0bh0NF7oS DGVJvNCImZAWRXxh5HENnsfMxJZrVQR9ZDQaaZ9awccX9S2L2WVMMniZMwIDAQAB AoGAUXoA5NxOc9tPkKr5rko/nXpbf0PyKfnz8ws963x/bhaMRZ2KRXXGpBnTrPhc /fXTCCd0JIn971/Sw07MgBD5TeEYpr9wNgVac85g+Mtr1yfQ9190xClGBYscRGrg 37RdD3NQn/eGsieFtStOy5Xcfwd50yi2rakXklpT4EVVU7ECQQDojA3Ig8u24IM3 sSDdnsTlurHHHj6QN0S474/PUFWtmVHmb6lEXglzyLZKQy5cMPmOGxkgs6+CzScO tHdvmjI5AkEA3gwTBGv8UhdXKuoRbYDJdkLR+9373hlHWgXluAv92hd1I6Gu2eYn ek87taDgNECzI6rpa/zh5b15nNx+/nD2ywJBAImzPQop+LwOj8Svjy2MMT1zYofs wdE12OzFdlulT0afjh6sqgeAw4obJM4un8oZefyK0UNLAzep8WHEvSCJpwkCQEmH agy+zZFJlV3qoNbIHO6CdhKXkb4cVNpktYtavTcpKWshMUuKwWvpLPaaTWRAQJIB GMbfuNZhBhKBmbQcKD0CQHSGDK1PJVABitYAyj6OSddDSWZb1RNgYLC3OBZM9rz6 EfB/L+oa529LjlVON52q9yIu+sduPVe8s74lzIoxZjs=\n-----END RSA PRIVATE KEY-----"
+    },
+    "dev_default_access_token_ttl": {
+      "type": "integer",
+      "description": "The default TTL for access tokens in dev mode. NOTE: This should NOT be used in production",
+      "default": 300
+    },
+    "dev_default_refresh_token_ttl": {
+      "type": "integer",
+      "description": "The default TTL for refresh tokens in dev mode. NOTE: This should NOT be used in production",
+      "default": 600
+    }
+  },
+  "required": ["tenants"]
+}
