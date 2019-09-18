@@ -21,29 +21,32 @@ class TokensResource(Resource):
     """
     def post(self):
         logger.debug("top of  POST /tokens")
-        # try:
-        validator = RequestValidator(utils.spec)
-        validated = validator.validate(FlaskOpenAPIRequest(request))
-        if validated.errors:
-            raise errors.ResourceError(msg=f'Invalid POST data: {validated.errors}.')
-        validated_body = validated.body
-        # this raises an exception of the claims are invalid -
-        if hasattr(validated_body, 'extra_claims'):
-            check_extra_claims(validated_body.extra_claims)
-        token_data = TapisAccessToken.get_derived_values(validated_body)
-        access_token = TapisAccessToken(**token_data)
-        access_token.sign_token()
-        result = {}
-        result['access_token'] = access_token.serialize
+        try:
+            validator = RequestValidator(utils.spec)
+            validated = validator.validate(FlaskOpenAPIRequest(request))
+            if validated.errors:
+                raise errors.ResourceError(msg=f'Invalid POST data: {validated.errors}.')
+            validated_body = validated.body
+            # this raises an exception of the claims are invalid -
+            if hasattr(validated_body, 'claims'):
+                check_extra_claims(request.json.get('claims'))
+                # set it to the raw request's claims object which is an arbitrary python dictionary
+                validated_body.claims = request.json.get('claims')
+            logger.debug("extra claims check approved.")
+            token_data = TapisAccessToken.get_derived_values(validated_body)
+            access_token = TapisAccessToken(**token_data)
+            access_token.sign_token()
+            result = {}
+            result['access_token'] = access_token.serialize
 
-        # refresh token --
-        if hasattr(validated_body, 'generate_refresh_token') and validated_body.generate_refresh_token:
-            refresh_token = TokensResource.get_refresh_from_access_token_data(token_data, access_token)
-            result['refresh_token'] = refresh_token.serialize
-        return utils.ok(result=result, msg="Token generation successful.")
-        # except Exception as e:
-        #     return utils.ok(result="Got exception", msg=f"{refresh_token.serialize}")
-        #     # return utils.ok(result="Got exception", msg=f"Exception: {traceback.format_exc()}")
+            # refresh token --
+            if hasattr(validated_body, 'generate_refresh_token') and validated_body.generate_refresh_token:
+                refresh_token = TokensResource.get_refresh_from_access_token_data(token_data, access_token)
+                result['refresh_token'] = refresh_token.serialize
+            return utils.ok(result=result, msg="Token generation successful.")
+        except Exception as e:
+            # return utils.ok(result="Got exception", msg=f"{refresh_token.serialize}")
+            return utils.ok(result="Got exception", msg=f"Exception: {traceback.format_exc()}")
 
     def put(self):
         try:

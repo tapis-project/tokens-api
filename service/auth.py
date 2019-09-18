@@ -3,6 +3,10 @@ from common.config import conf
 from errors import InvalidTokenClaimsError
 from models import TapisAccessToken
 
+# get the logger instance -
+from common.logs import get_logger
+logger = get_logger(__name__)
+
 
 def check_extra_claims(extra_claims):
     """
@@ -10,6 +14,7 @@ def check_extra_claims(extra_claims):
     :param extra_claims:
     :return:
     """
+    logger.debug("top of check_extra_claims")
     if not conf.use_sk:
         # in dev mode when not using the security kernel, we allow all extra claims that are not part of the
         # standard tapis set

@@ -16,9 +16,9 @@ logger = get_logger(__name__)
 
 
 app = Flask(__name__)
-# app.config['SQLALCHEMY_DATABASE_URI'] = conf.sql_db_url
-# db = SQLAlchemy(app)
-# migrate = Migrate(app, db)
+app.config['SQLALCHEMY_DATABASE_URI'] = conf.sql_db_url
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 
 class TapisToken(object):
@@ -112,6 +112,7 @@ class TapisAccessToken(TapisToken):
 
     def __init__(self, iss, sub, tenant_id, username, account_type, ttl, exp, delegation, extra_claims=None):
         super().__init__(iss, sub, 'access', tenant_id, username, account_type, ttl, exp, extra_claims)
+        self.extra_claims = extra_claims
         self.delegation = delegation
 
     def claims_to_dict(self):
@@ -166,6 +167,9 @@ class TapisAccessToken(TapisToken):
 
         delegation = getattr(data, 'delegation_token', False)
         result['delegation'] = delegation
+        if hasattr(data, 'claims'):
+            # result.update(data.claims)
+            result['extra_claims'] = data.claims
         return result
 
 

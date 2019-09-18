@@ -52,6 +52,24 @@ $ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "token
 
 ```
 
+The raw JWT is returned and by default includes only the standard Tapis claims.
+One can base64 decode (or use a site like jwt.io) the payload string to 
+see the claim set. For the token above, it is:
+
+```
+{
+  "iss": "https://dev.api.tapis.io/tokens/v3",
+  "sub": "dev@jstubbs",
+  "tenant_id": "dev",
+  "token_type": "access",
+  "delegation": false,
+  "username": "jstubbs",
+  "account_type": "service",
+  "exp": 1568417188
+}
+```
+
+
 Generate access and refresh tokens:
 
 ```
@@ -73,6 +91,41 @@ $ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "token
   },
   "status": "success",
   "version": "dev"
+}
+```
+
+Create a token with additional custom claims:
+```
+$ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "token_type": "service", "token_username": "jstubbs", "claims": {"client_id": "123", "scope": "dev"}}'  localhost:5001/tokens
+
+{
+  "message": "Token generation successful.",
+  "result": {
+    "access_token": {
+      "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoiZGV2QGpzdHViYnMiLCJ0ZW5hbnRfaWQiOiJkZXYiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZGVsZWdhdGlvbiI6ZmFsc2UsInVzZXJuYW1lIjoianN0dWJicyIsImFjY291bnRfdHlwZSI6InNlcnZpY2UiLCJleHAiOjE1Njg4MzYwODMsImNsaWVudF9pZCI6IjEyMyIsInNjb3BlIjoiZGV2In0.WHi5ffPHJ8efiUMw0aOX4pgHYL4r_3gO1_QQ9McbWmqLOgjZIIHzu-qwJjLutJhXrIQEKkfJYWY-9pBenkehBEsxOwQh60_JQqV7NVohlcACPKcbFOm-rlWPQgdNzJCsJfxK4pG5S7mHjgrqdDrz-8OYD9mV34HP2ZNNZKUfmG4",
+      "expires_at": "2019-09-18 19:48:03.738634",
+      "expires_in": 300
+    }
+  },
+  "status": "success",
+  "version": "dev"
+}
+``` 
+
+If we decode the token above, we see the additional claims:
+
+```
+{
+  "iss": "https://dev.api.tapis.io/tokens/v3",
+  "sub": "dev@jstubbs",
+  "tenant_id": "dev",
+  "token_type": "access",
+  "delegation": false,
+  "username": "jstubbs",
+  "account_type": "service",
+  "exp": 1568836083,
+  "client_id": "123",
+  "scope": "dev"
 }
 ```
 
