@@ -39,6 +39,9 @@ class TapisToken(object):
     account_type = None
     exp = None
 
+    # non-standard claims are namespaced with the following text -
+    NAMESPACE_PRETEXT = 'tapis/'
+
     def __init__(self, iss, sub, token_type, tenant_id, username, account_type, ttl, exp, extra_claims=None, alg='RS256'):
         # header -----
         self.typ = TapisToken.typ
@@ -123,11 +126,11 @@ class TapisAccessToken(TapisToken):
         d = {
             'iss': self.iss,
             'sub': self.sub,
-            'tenant_id': self.tenant_id,
-            'token_type': self.token_type,
-            'delegation': self.delegation,
-            'username': self.username,
-            'account_type': self.account_type,
+            f'{TapisToken.NAMESPACE_PRETEXT}tenant_id': self.tenant_id,
+            f'{TapisToken.NAMESPACE_PRETEXT}token_type': self.token_type,
+            f'{TapisToken.NAMESPACE_PRETEXT}delegation': self.delegation,
+            f'{TapisToken.NAMESPACE_PRETEXT}username': self.username,
+            f'{TapisToken.NAMESPACE_PRETEXT}account_type': self.account_type,
             'exp': self.exp,
         }
         if self.extra_claims:
@@ -203,13 +206,13 @@ class TapisRefreshToken(TapisToken):
         d = {
             'iss': self.iss,
             'sub': self.sub,
-            'tenant_id': self.tenant_id,
-            'token_type': self.token_type,
+            f'{TapisToken.NAMESPACE_PRETEXT}tenant_id': self.tenant_id,
+            f'{TapisToken.NAMESPACE_PRETEXT}token_type': self.token_type,
             # NOTE: we intentionally do not include these claims, as the refresh token should not be
             #       honored by services as an access token.
             # 'username': self.username,
             # 'account_type': self.account_type,
             'exp': self.exp,
-            'access_token': self.access_token
+            f'{TapisToken.NAMESPACE_PRETEXT}access_token': self.access_token
         }
         return d
