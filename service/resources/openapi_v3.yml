@@ -105,6 +105,12 @@ components:
         delegation_token:
           type: boolean
           description: Whether the generated token should be a delegation token.
+        delegation_sub_tenant_id:
+          type: string
+          description: The tenant_id associated with the subject who used a delegation authority in creating the delegation token.
+        delegation_sub_username:
+          type: string
+          description: The username associated with the subject who used a delegation authority in creating the delegation token.
         access_token_ttl:
           type: integer
           description: The TTL, in seconds, for the generated token.

@@ -94,7 +94,7 @@ class TapisToken(object):
         :param ttl:
         :return:
         """
-        return f'{tenant_id}@{username}'
+        return f'{username}@{tenant_id}'
 
     @property
     def serialize(self):
@@ -110,13 +110,17 @@ class TapisAccessToken(TapisToken):
     Adds attributes and methods specific to access tokens.
     """
     delegation = None
+    delegation_sub = None
+
     # these are the standard Tapis access token claims and cannot appear in the extra_claims parameter -
     standard_tapis_access_claims = ('iss', 'sub', 'tenant', 'username', 'account_type', 'exp')
 
-    def __init__(self, iss, sub, tenant_id, username, account_type, ttl, exp, delegation, extra_claims=None):
+    def __init__(self, iss, sub, tenant_id, username, account_type, ttl, exp, delegation, delegation_sub=None,
+                 extra_claims=None):
         super().__init__(iss, sub, 'access', tenant_id, username, account_type, ttl, exp, extra_claims)
         self.extra_claims = extra_claims
         self.delegation = delegation
+        self.delegation_sub = delegation_sub
 
     def claims_to_dict(self):
         """
@@ -129,6 +133,7 @@ class TapisAccessToken(TapisToken):
             f'{TapisToken.NAMESPACE_PRETEXT}tenant_id': self.tenant_id,
             f'{TapisToken.NAMESPACE_PRETEXT}token_type': self.token_type,
             f'{TapisToken.NAMESPACE_PRETEXT}delegation': self.delegation,
+            f'{TapisToken.NAMESPACE_PRETEXT}delegation_sub': self.delegation_sub,
             f'{TapisToken.NAMESPACE_PRETEXT}username': self.username,
             f'{TapisToken.NAMESPACE_PRETEXT}account_type': self.account_type,
             'exp': self.exp,
@@ -170,6 +175,16 @@ class TapisAccessToken(TapisToken):
 
         delegation = getattr(data, 'delegation_token', False)
         result['delegation'] = delegation
+        # when creating a delegation token, the components needed to create the delegation sub are required:
+        if delegation:
+            try:
+                delegation_tenant_id = data.delegation_sub_tenant_id
+                delegation_username = data.delegation_sub_username
+            except (AttributeError, KeyError) as e:
+                logger.error(f"Missing required delegation token attribute; KeyError: {e}")
+                raise DAOError("Missing required delegation token attribute; both delegation_sub_tenant_id and "
+                               "delegation_sub_username are required when generating a delegation token.")
+            result['delegation_sub'] = TapisToken.compute_sub(delegation_tenant_id, delegation_username)
         if hasattr(data, 'claims'):
             # result.update(data.claims)
             result['extra_claims'] = data.claims
