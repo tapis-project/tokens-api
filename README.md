@@ -41,8 +41,8 @@ $ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "token
   "message": "Token generation successful.",
   "result": {
     "access_token": {
-      "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoiZGV2QGpzdHViYnMiLCJ0ZW5hbnRfaWQiOiJkZXYiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZGVsZWdhdGlvbiI6ZmFsc2UsInVzZXJuYW1lIjoianN0dWJicyIsImFjY291bnRfdHlwZSI6InNlcnZpY2UiLCJleHAiOjE1Njg0MTcxODh9.JBTEK81Uvb1FNRFRm6oLt2Fog3OHmJa9Z4kkRAo7LQlYSbZZdHxXnzTtCXXTrYr7YFIHTQ8xcNLRjwT5nUOaLlmu8qzrjanRbC1XQHZa4jRUOK2ARBUZRK9yVaf2uvbBRJLW_Krzo90p3Pn-RWR2TwcYKtRAQlygKgXdkn1zmZw",
-      "expires_at": "2019-09-13 23:26:28.196173",
+      "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoianN0dWJic0BkZXYiLCJ0YXBpcy90ZW5hbnRfaWQiOiJkZXYiLCJ0YXBpcy90b2tlbl90eXBlIjoiYWNjZXNzIiwidGFwaXMvZGVsZWdhdGlvbiI6ZmFsc2UsInRhcGlzL2RlbGVnYXRpb25fc3ViIjpudWxsLCJ0YXBpcy91c2VybmFtZSI6ImpzdHViYnMiLCJ0YXBpcy9hY2NvdW50X3R5cGUiOiJzZXJ2aWNlIiwiZXhwIjoxNTcxMDY4ODkyfQ.AZi6oIyJ5uml9hTjzPX58bYrb1j4zwuCDKC0_9SEBwJaT1IJVrzVow6lbXU-xudgzCwpOjOcj_Pg43vBrie0S6IijfN4iXaMAsuXKEfSCHPDXoNR3GPbvImeSiuqlMMofwCDJnVMc7Zq1kzRdeLBw4begtGCBEIx7RxtqbFYsg8",
+      "expires_at": "2019-10-14 16:01:32.898216",
       "expires_in": 300
     }
   },
@@ -59,51 +59,50 @@ see the claim set. For the token above, it is:
 ```
 {
   "iss": "https://dev.api.tapis.io/tokens/v3",
-  "sub": "dev@jstubbs",
-  "tenant_id": "dev",
-  "token_type": "access",
-  "delegation": false,
-  "username": "jstubbs",
-  "account_type": "service",
-  "exp": 1568417188
-}
-```
+  "sub": "jstubbs@dev",
+  "tapis/tenant_id": "dev",
+  "tapis/token_type": "access",
+  "tapis/delegation": false,
+  "tapis/delegation_sub": null,
+  "tapis/username": "jstubbs",
+  "tapis/account_type": "service",
+  "exp": 1571068892
+}```
 
 
 Generate access and refresh tokens:
 
 ```
 $ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "token_type": "service", "token_username": "jstubbs", "generate_refresh_token": true}'  localhost:5001/tokens
-
 {
   "message": "Token generation successful.",
   "result": {
     "access_token": {
-      "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoiZGV2QGpzdHViYnMiLCJ0ZW5hbnRfaWQiOiJkZXYiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZGVsZWdhdGlvbiI6ZmFsc2UsInVzZXJuYW1lIjoianN0dWJicyIsImFjY291bnRfdHlwZSI6InNlcnZpY2UiLCJleHAiOjE1Njg0MTcwNDR9.ZE_JqYRhpkAIyExgKP7YAIEIFNROJ4oft0G_dX1Q4WlPmCio2OQ4ajcxEjbfMUgPaFVBIgZ0IOQ76xaWIqtjVyoecCzJDX6U6RLEa-etnJzgfi3D6yjOCYahoAPiLwrCswgVqyGediEAxTvdWQUqK6xsrwiTB7iYT_HRDR_yb8Q",
-      "expires_at": "2019-09-13 23:24:04.758644",
+      "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoianN0dWJic0BkZXYiLCJ0YXBpcy90ZW5hbnRfaWQiOiJkZXYiLCJ0YXBpcy90b2tlbl90eXBlIjoiYWNjZXNzIiwidGFwaXMvZGVsZWdhdGlvbiI6ZmFsc2UsInRhcGlzL2RlbGVnYXRpb25fc3ViIjpudWxsLCJ0YXBpcy91c2VybmFtZSI6ImpzdHViYnMiLCJ0YXBpcy9hY2NvdW50X3R5cGUiOiJzZXJ2aWNlIiwiZXhwIjoxNTcxMDY4OTQ5fQ.D1kGb17VpUNXwP78NeaTcmQ8LcgPQbPI6Ag0S7BNuu76t2QZBazi-WGLNqnsXFEc7zl1SoKSlsa1ROtqauDFH_AAqzKl-yWcfTZ-yElfeaAaqs-8XtgEmb3fEATiguty_g4fsh6k8yTq2cRfdysVqtyx-O0RZJP3K1E8W4RlMV8",
+      "expires_at": "2019-10-14 16:02:29.428697",
       "expires_in": 300
     },
     "refresh_token": {
-      "expires_at": "2019-09-13 23:29:04.896390",
+      "expires_at": "2019-10-14 16:07:29.429428",
       "expires_in": 600,
-      "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoiZGV2QGpzdHViYnMiLCJ0ZW5hbnRfaWQiOiJkZXYiLCJ0b2tlbl90eXBlIjoicmVmcmVzaCIsInVzZXJuYW1lIjoianN0dWJicyIsImFjY291bnRfdHlwZSI6InNlcnZpY2UiLCJleHAiOjE1Njg0MTczNDQsImFjY2Vzc190b2tlbiI6eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoiZGV2QGpzdHViYnMiLCJ0ZW5hbnRfaWQiOiJkZXYiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZGVsZWdhdGlvbiI6ZmFsc2UsInVzZXJuYW1lIjoianN0dWJicyIsImFjY291bnRfdHlwZSI6InNlcnZpY2UifX0.rdCY7xGTIyMa04AtxIKeBCV06i0dI4kJC0R-uZQwRC6GIH2sNE9qc7YPE5qYTPpAWneuMd-pMc7SijW2DPkIQdGQOuVHd_m-L5aivVmyfh9IR69x2rx5RXFo5iLEDtz-9eBFw81JTXYpNc-W2mIYeTwQTijt_KbibwWa7Nvj2xw"
+      "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoianN0dWJic0BkZXYiLCJ0YXBpcy90ZW5hbnRfaWQiOiJkZXYiLCJ0YXBpcy90b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTU3MTA2OTI0OSwidGFwaXMvYWNjZXNzX3Rva2VuIjp7ImlzcyI6Imh0dHBzOi8vZGV2LmFwaS50YXBpcy5pby90b2tlbnMvdjMiLCJzdWIiOiJqc3R1YmJzQGRldiIsInRhcGlzL3RlbmFudF9pZCI6ImRldiIsInRhcGlzL3Rva2VuX3R5cGUiOiJhY2Nlc3MiLCJ0YXBpcy9kZWxlZ2F0aW9uIjpmYWxzZSwidGFwaXMvZGVsZWdhdGlvbl9zdWIiOm51bGwsInRhcGlzL3VzZXJuYW1lIjoianN0dWJicyIsInRhcGlzL2FjY291bnRfdHlwZSI6InNlcnZpY2UiLCJ0dGwiOjMwMH19.JbRDyaV36gh4GEiOF9wGPxjQJZLVr2GVt-2CcRDziAQHFQ0SriJWu3bGFMEMht7QIOeFeSaYDPS_iDoVncEQAc4-UFi8JVDnoNKQ3BTgeoy2t_v99SXMRZZcfaf3YLTw_bCeUrgZm2lBogVqAV6QmpJ13VuILzbcyp3445eCy4c"
     }
   },
   "status": "success",
   "version": "dev"
 }
+
 ```
 
 Create a token with additional custom claims:
 ```
 $ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "token_type": "service", "token_username": "jstubbs", "claims": {"client_id": "123", "scope": "dev"}}'  localhost:5001/tokens
-
 {
   "message": "Token generation successful.",
   "result": {
     "access_token": {
-      "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoiZGV2QGpzdHViYnMiLCJ0ZW5hbnRfaWQiOiJkZXYiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZGVsZWdhdGlvbiI6ZmFsc2UsInVzZXJuYW1lIjoianN0dWJicyIsImFjY291bnRfdHlwZSI6InNlcnZpY2UiLCJleHAiOjE1Njg4MzYwODMsImNsaWVudF9pZCI6IjEyMyIsInNjb3BlIjoiZGV2In0.WHi5ffPHJ8efiUMw0aOX4pgHYL4r_3gO1_QQ9McbWmqLOgjZIIHzu-qwJjLutJhXrIQEKkfJYWY-9pBenkehBEsxOwQh60_JQqV7NVohlcACPKcbFOm-rlWPQgdNzJCsJfxK4pG5S7mHjgrqdDrz-8OYD9mV34HP2ZNNZKUfmG4",
-      "expires_at": "2019-09-18 19:48:03.738634",
+      "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoianN0dWJic0BkZXYiLCJ0YXBpcy90ZW5hbnRfaWQiOiJkZXYiLCJ0YXBpcy90b2tlbl90eXBlIjoiYWNjZXNzIiwidGFwaXMvZGVsZWdhdGlvbiI6ZmFsc2UsInRhcGlzL2RlbGVnYXRpb25fc3ViIjpudWxsLCJ0YXBpcy91c2VybmFtZSI6ImpzdHViYnMiLCJ0YXBpcy9hY2NvdW50X3R5cGUiOiJzZXJ2aWNlIiwiZXhwIjoxNTcxMDY4OTc2LCJjbGllbnRfaWQiOiIxMjMiLCJzY29wZSI6ImRldiJ9.qt7tFo2sWhY0XpQx-l5IpACFUarpV81v9e5UzLmCX1EVYFiShfUd1drkNrqsOfMUlhxxwyV42umBrv019PSSSkTBsMAesHKjEqB6pn0huWkhZDKbTexcYT2M7Z20vZ9lh_a6HfBJXtA7VGcuqj8uKZVjw3Kql6tcb_N7Juw-7_0",
+      "expires_at": "2019-10-14 16:02:56.422500",
       "expires_in": 300
     }
   },
@@ -117,17 +116,17 @@ If we decode the token above, we see the additional claims:
 ```
 {
   "iss": "https://dev.api.tapis.io/tokens/v3",
-  "sub": "dev@jstubbs",
-  "tenant_id": "dev",
-  "token_type": "access",
-  "delegation": false,
-  "username": "jstubbs",
-  "account_type": "service",
-  "exp": 1568836083,
+  "sub": "jstubbs@dev",
+  "tapis/tenant_id": "dev",
+  "tapis/token_type": "access",
+  "tapis/delegation": false,
+  "tapis/delegation_sub": null,
+  "tapis/username": "jstubbs",
+  "tapis/account_type": "service",
+  "exp": 1571068976,
   "client_id": "123",
   "scope": "dev"
-}
-```
+}```
 
 Use a refresh token to get a new access and refresh token pair:
 
@@ -138,20 +137,19 @@ $ curl -X PUT  -H "Content-type: application/json" -d '{"refresh_token": "eyJ0eX
   "message": "Token generation successful.",
   "result": {
     "access_token": {
-      "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoiZGV2QGpzdHViYnMiLCJ0ZW5hbnRfaWQiOiJkZXYiLCJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZGVsZWdhdGlvbiI6ZmFsc2UsInVzZXJuYW1lIjoianN0dWJicyIsImFjY291bnRfdHlwZSI6InNlcnZpY2UiLCJleHAiOjE1Njg0ODYzMDN9.KBChtfKzuMqgQimFEkrSuc8XZHjStlsB8V6VnbKcIk_uIGTvXYI6rHY8KEC_b8DCaqP6Wm8eDslN4TP5O9XWkqTAG_ZMmk4VIFZNJFFyUcGth5eYdxuiFcDoRqd79zgVrrdp-ghvRrUl8EBOOV6HIkVsVhMTcgsI1TRO44RxiYk",
-      "expires_at": "2019-09-14 18:38:23.513697",
+      "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoianN0dWJic0BkZXYiLCJ0YXBpcy90ZW5hbnRfaWQiOiJkZXYiLCJ0YXBpcy90b2tlbl90eXBlIjoiYWNjZXNzIiwidGFwaXMvZGVsZWdhdGlvbiI6ZmFsc2UsInRhcGlzL2RlbGVnYXRpb25fc3ViIjpudWxsLCJ0YXBpcy91c2VybmFtZSI6ImpzdHViYnMiLCJ0YXBpcy9hY2NvdW50X3R5cGUiOiJzZXJ2aWNlIiwiZXhwIjoxNTcxMDY5NDQ1LCJjbGllbnRfaWQiOiIxMjMiLCJzY29wZSI6ImRldiJ9.b-OlkY9LgGVoIVBYhH_NLpP70WOJf2YeAxZhjxaCQT6KagYXg-4tglD5taP9aSO-pHSL6TTVa87trn4jNYqMM4RfYHlSIPdSG6wn6zkMDfCu-jPwMA1866BcxfvlALiDyDLYPLwiWdaZdoS7y1IHomJfyrGQWP74XQqS5eJ3Osc",
+      "expires_at": "2019-10-14 16:10:45.776079",
       "expires_in": 300
     },
-    "refres_token": {
-      "expires_at": "2019-09-14 18:43:23.514270",
+    "refresh_token": {
+      "expires_at": "2019-10-14 16:15:45.777293",
       "expires_in": 600,
-      "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoiZGV2QGpzdHViYnMiLCJ0ZW5hbnRfaWQiOiJkZXYiLCJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTU2ODQ4NjYwMywiYWNjZXNzX3Rva2VuIjp7ImlzcyI6Imh0dHBzOi8vZGV2LmFwaS50YXBpcy5pby90b2tlbnMvdjMiLCJzdWIiOiJkZXZAanN0dWJicyIsInRlbmFudF9pZCI6ImRldiIsInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJkZWxlZ2F0aW9uIjpmYWxzZSwidXNlcm5hbWUiOiJqc3R1YmJzIiwiYWNjb3VudF90eXBlIjoic2VydmljZSIsInR0bCI6MzAwfX0.TWcAX0N9UpNqvjAMsoAvURL-jIWJFLsnzkrzGdB3ypUumD-5XyiFyLdZeIqZeMfk9wtq8cVj0OS0upxY5jwJ_XTWz0BCRkMDPoya1zeaDW9FOsVwt91Y44aB8u9KzNf7hywd5tI3kikwUAGi0FsJXuvpkkwAzM1mk3I8plX8uQM"
+      "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoianN0dWJic0BkZXYiLCJ0YXBpcy90ZW5hbnRfaWQiOiJkZXYiLCJ0YXBpcy90b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTU3MTA2OTc0NSwidGFwaXMvYWNjZXNzX3Rva2VuIjp7ImlzcyI6Imh0dHBzOi8vZGV2LmFwaS50YXBpcy5pby90b2tlbnMvdjMiLCJzdWIiOiJqc3R1YmJzQGRldiIsInRhcGlzL3RlbmFudF9pZCI6ImRldiIsInRhcGlzL3Rva2VuX3R5cGUiOiJhY2Nlc3MiLCJ0YXBpcy9kZWxlZ2F0aW9uIjpmYWxzZSwidGFwaXMvZGVsZWdhdGlvbl9zdWIiOm51bGwsInRhcGlzL3VzZXJuYW1lIjoianN0dWJicyIsInRhcGlzL2FjY291bnRfdHlwZSI6InNlcnZpY2UiLCJjbGllbnRfaWQiOiIxMjMiLCJzY29wZSI6ImRldiIsInR0bCI6MzAwfX0.nX1SPfkxHgWI3Ycf3gBGi0C3PVcgGqq94rEuIERKKoJfrzzkd6EnLMxAxcqRZQDX9NYZWCNX3oR1IBQqpqZB0QTuSLFffQf35PuiH4VAeanOvRrMKyeKm1a9UCNEWPDrmd5MUC8GnTIlapbccDN7DeJ6iewHoeFU1GmJkq239lU"
     }
   },
   "status": "success",
   "version": "dev"
 }
-
 ```
 
 ### Key Format and Generating a Public/Private Key Pair

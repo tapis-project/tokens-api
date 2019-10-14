@@ -1,3 +1,4 @@
+import copy
 import traceback
 
 from flask import request
@@ -51,15 +52,30 @@ class TokensResource(Resource):
             if validated.errors:
                 raise errors.ResourceError(msg=f'Invalid PUT data: {validated.errors}.')
             refresh_token = validated.body.refresh_token
+            logger.debug(f"type(refresh_token) = {type(refresh_token)}")
             refresh_token_data = auth.validate_token(refresh_token)
-            token_data = refresh_token_data['access_token']
-            token_data.pop('token_type')
+            # get the original access_token data from within the decoded refresh_token
+            token_data = refresh_token_data['tapis/access_token']
+            token_data.pop('tapis/token_type')
             token_data['exp'] = TapisAccessToken.compute_exp(token_data['ttl'])
-            access_token = TapisAccessToken(**token_data)
+            # create a dictionary of data that can be used to instantiate access and refresh tokens; the constructors
+            # require variable names that do not include the Tapis prefix, so we need to remove that -
+            new_token_data = { 'iss': token_data.pop('iss'),
+                               'sub': token_data.pop('sub'),
+                               'tenant_id': token_data.pop('tapis/tenant_id'),
+                               'username': token_data.pop('tapis/username'),
+                               'account_type': token_data.pop('tapis/account_type'),
+                               'ttl': token_data.pop('ttl'),
+                               'exp': token_data.pop('exp'),
+                               'delegation': token_data.pop('tapis/delegation'),
+                               'delegation_sub': token_data.pop('tapis/delegation_sub', None),
+                               'extra_claims': token_data
+                               }
+            access_token = TapisAccessToken(**new_token_data)
             access_token.sign_token()
-            refresh_token = TokensResource.get_refresh_from_access_token_data(token_data, access_token)
+            refresh_token = TokensResource.get_refresh_from_access_token_data(new_token_data, access_token)
             result = {'access_token': access_token.serialize,
-                      'refres_token': refresh_token.serialize
+                      'refresh_token': refresh_token.serialize
                       }
             return utils.ok(result=result, msg="Token generation successful.")
         except Exception as e:
@@ -75,10 +91,13 @@ class TokensResource(Resource):
         :return: TapisRefreshToken, signed
         """
         # refresh tokens have all the same attributes as the associated access token (and same values)
-        # except that refresh tokens do not have `delegation` and they do have an `access_token` attr:
+        # except that refresh tokens do not have `delegation`, they do have an `access_token` attr, and they
+        # cannot have extra claims:
         token_data.pop('delegation')
         token_data['access_token'] = access_token.claims_to_dict()
         token_data['access_token'].pop('exp')
+        token_data.pop('delegation_sub', None)
+        token_data.pop('extra_claims', None)
         # record the requested ttl for the token so that we can use it to generate a token of equal length
         # at refresh
         token_data['access_token']['ttl'] = token_data['ttl']
