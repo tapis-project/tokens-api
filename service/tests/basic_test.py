@@ -1,23 +1,84 @@
 import pytest
+import json
+from unittest import TestCase
+from service.api import app
 
-from service.models import app
+# These tests are intended to be run locally.
 
 @pytest.fixture
 def client():
     app.debug = True
     return app.test_client()
 
+
 def test_invalid_post(client):
-    response = client.post("http://localhost:5000/tokens")
-    assert response.status_code == 404
+    with client:
+        response = client.post("http://localhost:5000/tokens")
+
+        assert response.status_code == 400
 
 
 def test_valid_post(client):
+    with client:
+        payload = {
+            'token_tenant_id': 'dev',
+            'token_type': 'service',
+            'token_username': 'jstubbs'
+        }
+
+        response = client.post(
+            "http://localhost:5000/tokens",
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 200
+
+
+# def test_get_refresh_token(client):
+#     payload = {
+#         "token_tenant_id": "dev",
+#         "token_type": "service",
+#         "token_username": "jstubbs",
+#         "generate_refresh_token": True
+#     }
+#
+#     response = client.post(
+#         "http://localhost:5000/tokens",
+#         data=json.dumps(payload),
+#         content_type='application/json'
+#     )
+#     assert "refresh_token" in response.json['result'].keys()
+#     refresh_token = response.json['result']['refresh_token']['refresh_token']
+#     access_token = response.json['result']['access_token']['access_token']
+#
+#     payload2 = {
+#         "tenant_id": "dev",
+#         "refresh_token": refresh_token
+#     }
+#
+#     response2 = client.put(
+#         "http://localhost:5000/tokens",
+#         data=json.dumps(payload2),
+#         content_type='application/json'
+#     )
+#
+#
+#     assert "refresh_token" in response2.json['result'].keys()
+#     assert "access_token" in response2.json['result'].keys()
+#     assert refresh_token != response2.json['result']['refresh_token']
+#     assert access_token != response2.json['result']['access_token']
+
+def test_bad_refresh_token_gives_correct_error(client):
     payload = {
-        b"token_tenant_id": b"dev",
-        b"token_type": b"service",
-        b"token_username": b"jstubbs"
+        "tenant_id": "dev",
+        "refresh_token": "bad"
     }
-    headers = {b"Content-type": b"application/json"}
-    response = client.post("http://localhost:5000/tokens", data=payload, headers=headers)
-    assert b"Invalid POST data" not in response.data
+
+    response = client.put(
+        "http://localhost:5000/tokens",
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    assert response.status_code == 400

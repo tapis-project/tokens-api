@@ -1,19 +1,24 @@
 import copy
 import traceback
-
+from flask import Flask
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 from flask import request
 from flask_restful import Resource
 from openapi_core.shortcuts import RequestValidator
 from openapi_core.wrappers.flask import FlaskOpenAPIRequest
-
+from common.config import conf
 from common import auth, utils, errors
 
-from auth import check_extra_claims
-from models import TapisAccessToken, TapisRefreshToken
+from service.auth import check_extra_claims
+from service.models import TapisAccessToken, TapisRefreshToken
+from service import db
+
 
 # get the logger instance -
 from common.logs import get_logger
 logger = get_logger(__name__)
+
 
 
 class TokensResource(Resource):
@@ -73,11 +78,14 @@ class TokensResource(Resource):
                                }
             access_token = TapisAccessToken(**new_token_data)
             access_token.sign_token()
+
             refresh_token = TokensResource.get_refresh_from_access_token_data(new_token_data, access_token)
             result = {'access_token': access_token.serialize,
                       'refresh_token': refresh_token.serialize
                       }
             return utils.ok(result=result, msg="Token generation successful.")
+        except errors.AuthenticationError:
+            raise errors.ResourceError(msg=f'Invalid PUT data: {request}.')
         except Exception as e:
             # return utils.ok(result="Got exception", msg=f"{refresh_token.serialize}")
             return utils.ok(result="Got exception", msg=f"Exception: {traceback.format_exc()}")

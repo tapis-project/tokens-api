@@ -1,6 +1,9 @@
 from common.auth import tenants as ts
 from common.config import conf
 from common import errors
+from flask import Flask
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 
 
 def add_tenant_private_keys():
@@ -37,3 +40,29 @@ def get_tenant_config(tenant_id):
         if tenant['tenant_id'] == tenant_id:
             return tenant
     raise errors.BaseTapisError("invalid tenant id.")
+
+# db = SQLAlchemy()
+
+# def create_app():
+#     """Construct the core application."""
+#
+#     app = Flask(__name__)
+#     app.config['SQLALCHEMY_DATABASE_URI'] = conf.sql_db_url
+#     db.init_app(app)
+#     # db = SQLAlchemy(app)
+#     migrate = Migrate(app, db)
+#
+#     with app.app_context():
+#         # Imports
+#         from . import api, controllers
+#
+#         # Create tables for our models
+#         db.create_all()
+#
+#         return app
+
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = conf.sql_db_url
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
