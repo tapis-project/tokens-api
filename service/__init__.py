@@ -41,26 +41,6 @@ def get_tenant_config(tenant_id):
             return tenant
     raise errors.BaseTapisError("invalid tenant id.")
 
-# db = SQLAlchemy()
-
-# def create_app():
-#     """Construct the core application."""
-#
-#     app = Flask(__name__)
-#     app.config['SQLALCHEMY_DATABASE_URI'] = conf.sql_db_url
-#     db.init_app(app)
-#     # db = SQLAlchemy(app)
-#     migrate = Migrate(app, db)
-#
-#     with app.app_context():
-#         # Imports
-#         from . import api, controllers
-#
-#         # Create tables for our models
-#         db.create_all()
-#
-#         return app
-
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = conf.sql_db_url
