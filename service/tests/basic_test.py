@@ -63,7 +63,6 @@ def test_get_refresh_token(client):
         content_type='application/json'
     )
 
-
     assert "refresh_token" in response2.json['result'].keys()
     assert "access_token" in response2.json['result'].keys()
     assert refresh_token != response2.json['result']['refresh_token']
