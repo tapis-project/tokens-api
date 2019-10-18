@@ -21,7 +21,7 @@ def check_extra_claims(extra_claims):
         for k,_ in extra_claims.items():
             if k in TapisAccessToken.standard_tapis_access_claims:
                 raise InvalidTokenClaimsError(f"passing claim {k} as an extra_claim is not allowed, "
-                                              f"as it is a standarg Tapis claim.")
+                                              f"as it is a standard Tapis claim.")
     else:
         # TODO - implement auth via SK
         raise NotImplementedError("The security kernel is not available.")
