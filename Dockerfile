@@ -13,6 +13,7 @@ RUN touch /home/tapis/service.log
 COPY configschema.json /home/tapis/configschema.json
 COPY config-local.json /home/tapis/config.json
 COPY service /home/tapis/service
+COPY pytest.ini /home/tapis
 
 RUN chown -R tapis:tapis /home/tapis
 USER tapis

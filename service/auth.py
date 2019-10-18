@@ -1,7 +1,7 @@
 from common.config import conf
 
-from errors import InvalidTokenClaimsError
-from models import TapisAccessToken
+from service.errors import InvalidTokenClaimsError
+from service.models import TapisAccessToken
 
 # get the logger instance -
 from common.logs import get_logger

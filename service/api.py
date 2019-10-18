@@ -1,13 +1,9 @@
-from flask_migrate import Migrate
-
 from common.utils import TapisApi, handle_error, flask_errors_dict
 
 from service.controllers import TokensResource
-from service.models import db, app
 
-# db and migrations ----
-db.init_app(app)
-migrate = Migrate(app, db)
+from service import app, db
+
 
 # flask restful API object ----
 api = TapisApi(app, errors=flask_errors_dict)

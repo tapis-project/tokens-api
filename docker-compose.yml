@@ -25,7 +25,8 @@ services:
 #            - tokens
 #
     tokens:
-        image: tapis/tokens-api
+        build: .
+        # image: tapis/tokens-api
         ports:
             - "5001:5000"
         volumes:
@@ -35,4 +36,3 @@ services:
             - tokens
 #        depends_on:
 #            - postgres
-

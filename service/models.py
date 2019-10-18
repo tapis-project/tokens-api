@@ -1,24 +1,12 @@
 import datetime
-
-from flask import Flask
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
 import jwt
-
-from common.config import conf
 from common.errors import DAOError
 
-from service import tenants, get_tenant_config
+from service import tenants, get_tenant_config, db
 
 # get the logger instance -
 from common.logs import get_logger
 logger = get_logger(__name__)
-
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = conf.sql_db_url
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
 
 
 class TapisToken(object):
