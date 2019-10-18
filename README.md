@@ -67,7 +67,8 @@ see the claim set. For the token above, it is:
   "tapis/username": "jstubbs",
   "tapis/account_type": "service",
   "exp": 1571068892
-}```
+}
+```
 
 
 Generate access and refresh tokens:
@@ -126,7 +127,8 @@ If we decode the token above, we see the additional claims:
   "exp": 1571068976,
   "client_id": "123",
   "scope": "dev"
-}```
+}
+```
 
 Use a refresh token to get a new access and refresh token pair:
 
