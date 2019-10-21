@@ -2,6 +2,7 @@ import pytest
 import json
 from unittest import TestCase
 from service.api import app
+from common import auth
 
 # These tests are intended to be run locally.
 
@@ -63,11 +64,11 @@ def test_get_refresh_token(client):
         content_type='application/json'
     )
 
-
     assert "refresh_token" in response2.json['result'].keys()
     assert "access_token" in response2.json['result'].keys()
     assert refresh_token != response2.json['result']['refresh_token']
     assert access_token != response2.json['result']['access_token']
+
 
 def test_bad_refresh_token_gives_correct_error(client):
     payload = {
@@ -80,5 +81,79 @@ def test_bad_refresh_token_gives_correct_error(client):
         data=json.dumps(payload),
         content_type='application/json'
     )
-
     assert response.status_code == 400
+
+
+def test_custom_claims_show_up_in_access_token(client):
+    payload = {
+        "token_tenant_id": "dev",
+        "token_type": "service",
+        "token_username": "jstubbs",
+        "generate_refresh_token": True,
+        "claims": {"test_claim": "here it is!"}
+    }
+
+    response = client.post(
+        "http://localhost:5000/tokens",
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    assert response.status_code == 200
+    access_token = response.json['result']['access_token']['access_token']
+    access_token_data = auth.validate_token(access_token)
+
+    assert access_token_data['test_claim'] == "here it is!"
+
+
+def test_custom_claims_show_up_after_refresh(client):
+
+    # First, get an access token
+    payload = {
+        "token_tenant_id": "dev",
+        "token_type": "service",
+        "token_username": "jstubbs",
+        "generate_refresh_token": True,
+        "claims": {"test_claim": "here it is!"}
+    }
+
+    response = client.post(
+        "http://localhost:5000/tokens",
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    # Check that the first access token has the custom claim
+    assert response.status_code == 200
+    access_token = response.json['result']['access_token']['access_token']
+    access_token_data = auth.validate_token(access_token)
+
+    assert access_token_data['test_claim'] == "here it is!"
+
+    # Then refresh the token
+    refresh_token = response.json['result']['refresh_token']['refresh_token']
+
+    payload2 = {
+        "tenant_id": "dev",
+        "refresh_token": refresh_token
+    }
+
+    response2 = client.put(
+        "http://localhost:5000/tokens",
+        data=json.dumps(payload2),
+        content_type='application/json'
+    )
+
+    # Check the new access token
+    assert response2.status_code == 200
+    access_token2 = response2.json['result']['access_token']['access_token']
+
+    # Make sure the custom claim is still there
+    access_token_data2 = auth.validate_token(access_token2)
+
+    assert access_token_data2['test_claim'] == "here it is!"
+
+
+def test_cannot_override_existing_claims(client):
+    pass
+
