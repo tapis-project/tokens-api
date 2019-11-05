@@ -176,5 +176,5 @@ echo "$private_key" | sed -e 's/^[ ]*//' | openssl rsa -pubout  > key.pub
 ```
 
 Make sure to remove any spaces and covert line breaks to new line characters (`\n`)
-in both the public and private key strings in the files. Them copy the strings
+in both the public and private key strings in the files. Then, copy the strings
 to the corresponding service config files, as necessary.
