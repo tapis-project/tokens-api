@@ -142,7 +142,7 @@ class TapisAccessToken(TapisToken):
         try:
             result = {'tenant_id': data.token_tenant_id,
                       'username': data.token_username,
-                      'account_type': data.token_type,
+                      'account_type': data.account_type,
                       }
         except KeyError as e:
             logger.error(f"Missing required token attribute; KeyError: {e}")
