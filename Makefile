@@ -17,10 +17,7 @@ cwd=$(shell pwd)
 build.api:
 	cd $(cwd); touch service.log; docker build -t tapis/$(api)-api .;
 
-build.migrations:
-	cd $(cwd); docker build -f Dockerfile-migrations -t tapis/$(api)-api-migrations .
-
-build: build.api build.migrations
+build: build.api
 
 
 # ----- wipe the local environment by removing all containers
