@@ -193,7 +193,7 @@ class TapisRefreshToken(TapisToken):
     @classmethod
     def get_derived_values(cls, data):
         result = data
-        refresh_token_ttl = result.get('refresh_token_ttl', None)
+        refresh_token_ttl = result.pop('refresh_token_ttl', None)
         if not refresh_token_ttl:
             tenant = get_tenant_config(result['tenant_id'])
             refresh_token_ttl = tenant['refresh_token_ttl']
@@ -209,6 +209,9 @@ class TapisRefreshToken(TapisToken):
         d = {
             'iss': self.iss,
             'sub': self.sub,
+            # we store the initial ttl on a refresh token because, when using the refresh operation, a new
+            # refresh token with the same ttl will be created.
+            f'{TapisToken.NAMESPACE_PRETEXT}initial_ttl': self.ttl,
             f'{TapisToken.NAMESPACE_PRETEXT}tenant_id': self.tenant_id,
             f'{TapisToken.NAMESPACE_PRETEXT}token_type': self.token_type,
             # NOTE: we intentionally do not include these claims, as the refresh token should not be

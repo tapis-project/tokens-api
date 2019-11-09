@@ -46,11 +46,14 @@ class TokensResource(Resource):
 
         # refresh token --
         if hasattr(validated_body, 'generate_refresh_token') and validated_body.generate_refresh_token:
+            if hasattr(validated_body, 'refresh_token_ttl'):
+                token_data['refresh_token_ttl'] = validated_body.refresh_token_ttl
             refresh_token = TokensResource.get_refresh_from_access_token_data(token_data, access_token)
             result['refresh_token'] = refresh_token.serialize
         return utils.ok(result=result, msg="Token generation successful.")
 
     def put(self):
+        logger.debug("top of  PUT /tokens")
         validator = RequestValidator(utils.spec)
         validated = validator.validate(FlaskOpenAPIRequest(request))
         if validated.errors:
@@ -82,6 +85,8 @@ class TokensResource(Resource):
         access_token = TapisAccessToken(**new_token_data)
         access_token.sign_token()
 
+        # add the original refresh token's initial_ttl claim as the ttl for the new refresh token
+        new_token_data['refresh_token_ttl'] = refresh_token_data['tapis/initial_ttl']
         refresh_token = TokensResource.get_refresh_from_access_token_data(new_token_data, access_token)
         result = {'access_token': access_token.serialize,
                   'refresh_token': refresh_token.serialize
@@ -96,6 +101,8 @@ class TokensResource(Resource):
         :param access_token: TapisAccessToken
         :return: TapisRefreshToken, signed
         """
+        logger.debug("top of get_refresh_from_access_token_data()")
+        logger.debug(f"token_data:{token_data}; access_token: {access_token}")
         # refresh tokens have all the same attributes as the associated access token (and same values)
         # except that refresh tokens do not have `delegation`, they do have an `access_token` attr, and they
         # cannot have extra claims:
@@ -107,6 +114,7 @@ class TokensResource(Resource):
         # record the requested ttl for the token so that we can use it to generate a token of equal length
         # at refresh
         token_data['access_token']['ttl'] = token_data['ttl']
+        logger.debug(f"instantiating refresh token with token_data: {token_data}")
         refresh_token_data = TapisRefreshToken.get_derived_values(token_data)
         refresh_token = TapisRefreshToken(**refresh_token_data)
         refresh_token.sign_token()
