@@ -21,7 +21,7 @@ servers:
 
 
 paths:
-  /tokens:
+  /v3/tokens:
     post:
       tags:
       - Tokens
@@ -87,7 +87,7 @@ components:
         status:
           type: string
           description: Whether the request was a success or failure.
-          enum: [success, failure]
+          enum: [success, error]
 
     NewTokenRequest:
       type: object
@@ -129,11 +129,9 @@ components:
       type: object
       properties:
         access_token:
-          type: string
-          description: The generated access token.
+          $ref: '#/components/schemas/NewAccessTokenResponse'
         refresh_token:
-          type: string
-          description: The generated refresh token.
+          $ref: '#/components/schemas/NewRefreshTokenResponse'
 
     RefreshTokenRequest:
       type: object
@@ -141,4 +139,30 @@ components:
         refresh_token:
           type: string
           description: The refresh token being used to get a new access token.
+
+    NewAccessTokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: The generated access token.
+        expires_at:
+          type: string
+          description: The date-time string when the generated access token expires.
+        expires_in:
+          type: integer
+          description: The time, in seconds, when the generated access token expires.
+
+    NewRefreshTokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: The generated refresh token.
+        expires_at:
+          type: string
+          description: The date-time string when the generated refresh token expires.
+        expires_in:
+          type: integer
+          description: The time, in seconds, when the generated refresh token expires.
 
