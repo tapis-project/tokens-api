@@ -21,7 +21,7 @@ servers:
 
 
 paths:
-  /tokens:
+  /v3/tokens:
     post:
       tags:
       - Tokens
