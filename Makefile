@@ -15,12 +15,12 @@ cwd=$(shell pwd)
 # ----- build images
 
 build.api:
-	cd $(cwd); touch service.log; docker build -t tapis/$(api)-api .;
+	cd $(cwd); touch service.log; chmod a+w service.log; docker build -t tapis/$(api)-api .;
 
-build.migrations:
-	cd $(cwd); docker build -f Dockerfile-migrations -t tapis/$(api)-api-migrations .
+build.test:
+	cd $(cwd); docker build -t tapis/$(api)-api-tests -f Dockerfile-tests .;
 
-build: build.api build.migrations
+build: build.api build.test
 
 
 # ----- wipe the local environment by removing all containers
@@ -30,6 +30,11 @@ clean:
 # ----- start databases
 run_dbs: build.api clean
 	cd $(cwd); docker-compose up -d postgres
+
+# ----- run tests
+
+test: build.test
+	cd $(cwd); touch service.log; docker-compose run $(api)-tests;
 
 # ----- connect to db as root
 connect_db:

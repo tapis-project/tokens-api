@@ -13,7 +13,7 @@ def add_tenant_private_keys():
     :return:
     """
     result = []
-    for tenant in ts:
+    for tenant in ts.tenants:
         # in dev mode, the tokens service can be configured to not use the security kernel, in which case we must get
         # the private key for a "dev" tenant directly from the service configs:
         if not conf.use_sk:

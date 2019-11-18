@@ -14,7 +14,7 @@ def client():
 
 def test_invalid_post(client):
     with client:
-        response = client.post("http://localhost:5000/tokens")
+        response = client.post("http://localhost:5000/v3/tokens")
 
         assert response.status_code == 400
 
@@ -23,12 +23,13 @@ def test_valid_post(client):
     with client:
         payload = {
             'token_tenant_id': 'dev',
-            'token_type': 'service',
-            'token_username': 'jstubbs'
+            'account_type': 'service',
+            'token_username': 'files',
+
         }
 
         response = client.post(
-            "http://localhost:5000/tokens",
+            "http://localhost:5000/v3/tokens",
             data=json.dumps(payload),
             content_type='application/json'
         )
@@ -39,13 +40,13 @@ def test_valid_post(client):
 def test_get_refresh_token(client):
     payload = {
         "token_tenant_id": "dev",
-        "token_type": "service",
+        "account_type": "service",
         "token_username": "jstubbs",
         "generate_refresh_token": True
     }
 
     response = client.post(
-        "http://localhost:5000/tokens",
+        "http://localhost:5000/v3/tokens",
         data=json.dumps(payload),
         content_type='application/json'
     )
@@ -59,7 +60,7 @@ def test_get_refresh_token(client):
     }
 
     response2 = client.put(
-        "http://localhost:5000/tokens",
+        "http://localhost:5000/v3/tokens",
         data=json.dumps(payload2),
         content_type='application/json'
     )
@@ -77,7 +78,7 @@ def test_bad_refresh_token_gives_correct_error(client):
     }
 
     response = client.put(
-        "http://localhost:5000/tokens",
+        "http://localhost:5000/v3/tokens",
         data=json.dumps(payload),
         content_type='application/json'
     )
@@ -87,14 +88,14 @@ def test_bad_refresh_token_gives_correct_error(client):
 def test_custom_claims_show_up_in_access_token(client):
     payload = {
         "token_tenant_id": "dev",
-        "token_type": "service",
+        "account_type": "service",
         "token_username": "jstubbs",
         "generate_refresh_token": True,
         "claims": {"test_claim": "here it is!"}
     }
 
     response = client.post(
-        "http://localhost:5000/tokens",
+        "http://localhost:5000/v3/tokens",
         data=json.dumps(payload),
         content_type='application/json'
     )
@@ -106,19 +107,55 @@ def test_custom_claims_show_up_in_access_token(client):
     assert access_token_data['test_claim'] == "here it is!"
 
 
+def test_custom_ttls(client):
+    payload = {
+        "token_tenant_id": "dev",
+        "account_type": "service",
+        "token_username": "jstubbs",
+        # 4 hour access token
+        "access_token_ttl": 14400,
+        "generate_refresh_token": True,
+        # 90 day refresh token
+        "refresh_token_ttl": 7776000,
+    }
+    response = client.post(
+        "http://localhost:5000/v3/tokens",
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+    assert response.status_code == 200
+    response.json['result']['access_token']['expires_in'] == 14400
+    response.json['result']['refresh_token']['expires_in'] == 7776000
+
+    refresh_token = response.json['result']['refresh_token']['refresh_token']
+
+    # now, refresh the token and make sure new access and refresh have the original custom ttl's
+    payload2 = {
+        "refresh_token": refresh_token
+    }
+    response2 = client.put(
+        "http://localhost:5000/v3/tokens",
+        data=json.dumps(payload2),
+        content_type='application/json'
+    )
+    assert response2.status_code == 200
+    response2.json['result']['access_token']['expires_in'] == 14400
+    response2.json['result']['refresh_token']['expires_in'] == 7776000
+
+
 def test_custom_claims_show_up_after_refresh(client):
 
     # First, get an access token
     payload = {
         "token_tenant_id": "dev",
-        "token_type": "service",
+        "account_type": "service",
         "token_username": "jstubbs",
         "generate_refresh_token": True,
         "claims": {"test_claim": "here it is!"}
     }
 
     response = client.post(
-        "http://localhost:5000/tokens",
+        "http://localhost:5000/v3/tokens",
         data=json.dumps(payload),
         content_type='application/json'
     )
@@ -134,12 +171,11 @@ def test_custom_claims_show_up_after_refresh(client):
     refresh_token = response.json['result']['refresh_token']['refresh_token']
 
     payload2 = {
-        "tenant_id": "dev",
         "refresh_token": refresh_token
     }
 
     response2 = client.put(
-        "http://localhost:5000/tokens",
+        "http://localhost:5000/v3/tokens",
         data=json.dumps(payload2),
         content_type='application/json'
     )

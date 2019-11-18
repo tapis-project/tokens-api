@@ -35,3 +35,6 @@ services:
             - tokens
 #        depends_on:
 #            - postgres
+
+    tokens-tests:
+        image: tapis/tokens-api-tests
