@@ -154,6 +154,20 @@ $ curl -X PUT  -H "Content-type: application/json" -d '{"refresh_token": "eyJ0eX
 }
 ```
 
+### Use the Tapis Develop Environment
+
+You can now interact with the Tokens API in the Tapis Develop environment. Here is an example curl:
+
+```
+$ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "account_type": "service", "token_username": "jstubbs", "access_token_ttl": 9999999}' https://dev.develop.tapis.io/v3/tokens
+
+{"message":"Token generation successful.",
+ "result":{"access_token":{"access_token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdjMvdG9rZW5zIiwic3ViIjoianN0dWJic0BkZXYiLCJ0YXBpcy90ZW5hbnRfaWQiOiJkZXYiLCJ0YXBpcy90b2tlbl90eXBlIjoiYWNjZXNzIiwidGFwaXMvZGVsZWdhdGlvbiI6ZmFsc2UsInRhcGlzL2RlbGVnYXRpb25fc3ViIjpudWxsLCJ0YXBpcy91c2VybmFtZSI6ImpzdHViYnMiLCJ0YXBpcy9hY2NvdW50X3R5cGUiOiJzZXJ2aWNlIiwiZXhwIjoxNTg2NTMxNzcyfQ.SNWbsqVOyTUX9uHAnVUyVOnQzY8L8XPVgFBMaos1FJdydko2R0FekT1x5_4gGMoTMZtG7DXuee2_IH3fd4JERzOHevxGW5htFgLvdZfRh9UtpNVNYVftwj5P1qf8S_8qR0Co9GYhBt_QAuGxlatXUa27IDNKPCTZWH4Gyw7rPslYKqEWNLu2KwrDOQvwUkbxeRdfYQ2RP0maRyJ0UVfJtWd47KhDUH5W9ZfsBGRvixRg66h0Ws5Ot4r3sRN-UIneDlD3x-5wLCfs9KM4IaDM-sKjQELOZCzGdeUNCkUmvG357V61QTg8NN7xHf8nZw8D7g3gAfSMtZsYFqe5tFnCfQ","expires_at":"2020-04-10 15:16:12.430150","expires_in":9999999}},
+ "status":"success",
+ "version":"dev"
+}
+```
+
 ### Key Format and Generating a Public/Private Key Pair
 (TODO - needs more detail)
 
