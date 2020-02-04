@@ -10,18 +10,22 @@ from service import get_tenant_config
 from common.logs import get_logger
 logger = get_logger(__name__)
 
+logger.debug("top of auth.py")
+
 # 10 years TTL
 SERVICE_TOKEN_TTL = 60*60*24*365*10
 
 # this is the Tapis client that tokens will use for interacting with other services, such as the security kernel.
 token_tenant = get_tenant_config(tenant_id=conf.service_tenant_id)
+logger.debug('got token_tenant')
 d = AccessTokenData(token_tenant_id=conf.service_tenant_id, token_username=conf.service_name, account_type = 'service')
 d.access_token_ttl =  SERVICE_TOKEN_TTL
 token_data = TapisAccessToken.get_derived_values(d)
 jwt = TapisAccessToken(**token_data)
 jwt.sign_token()
+logger.debug("generated and signed tokens service JWT.")
 t = get_service_tapy_client(jwt=jwt)
-
+logger.debug("got tapy client for tokens.")
 
 def authn_and_authz():
     """
