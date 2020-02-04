@@ -36,7 +36,7 @@ Use any HTTP client to interact with the running API. The following examples use
 Generate an access token:
 
 ```
-$ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "account_type": "service", "token_username": "jstubbs"}'  localhost:5001/tokens
+$ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "account_type": "service", "token_username": "jstubbs"}'  localhost:5001/v3/tokens
 {
   "message": "Token generation successful.",
   "result": {
@@ -74,7 +74,7 @@ see the claim set. For the token above, it is:
 Generate access and refresh tokens:
 
 ```
-$ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "account_type": "service", "token_username": "jstubbs", "generate_refresh_token": true}'  localhost:5001/tokens
+$ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "account_type": "service", "token_username": "jstubbs", "generate_refresh_token": true}'  localhost:5001/v3/tokens
 {
   "message": "Token generation successful.",
   "result": {
@@ -97,7 +97,7 @@ $ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "accou
 
 Create a token with additional custom claims:
 ```
-$ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "account_type": "service", "token_username": "jstubbs", "claims": {"client_id": "123", "scope": "dev"}}'  localhost:5001/tokens
+$ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "account_type": "service", "token_username": "jstubbs", "claims": {"client_id": "123", "scope": "dev"}}'  localhost:5001/v3/tokens
 {
   "message": "Token generation successful.",
   "result": {
@@ -133,7 +133,7 @@ If we decode the token above, we see the additional claims:
 Use a refresh token to get a new access and refresh token pair:
 
 ```
-$ curl -X PUT  -H "Content-type: application/json" -d '{"refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoiZGV2QGpzdHViYnMiLCJ0ZW5hbnRfaWQiOiJkZXYiLCJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTU2ODQ4NjIxMywiYWNjZXNzX3Rva2VuIjp7ImlzcyI6Imh0dHBzOi8vZGV2LmFwaS50YXBpcy5pby90b2tlbnMvdjMiLCJzdWIiOiJkZXZAanN0dWJicyIsInRlbmFudF9pZCI6ImRldiIsInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJkZWxlZ2F0aW9uIjpmYWxzZSwidXNlcm5hbWUiOiJqc3R1YmJzIiwiYWNjb3VudF90eXBlIjoic2VydmljZSIsInR0bCI6MzAwfX0.d6L2s6uLidgsSpnoDsRB2qKJhpiK7moUX6Hd-wAZnms7BvT7uFfq5Pjx6EzChTXSyJYICtLVhOppkDjRKAQI3Rv6HyU3HMKC25r1_hRHLOmCzA2OK3G8Zm8cMAW8iAiamRCriocdxqnWignmDiuRmTGyhLeb2RGtYccX_yz3Hbw"}'  localhost:5001/tokens
+$ curl -X PUT  -H "Content-type: application/json" -d '{"refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJodHRwczovL2Rldi5hcGkudGFwaXMuaW8vdG9rZW5zL3YzIiwic3ViIjoiZGV2QGpzdHViYnMiLCJ0ZW5hbnRfaWQiOiJkZXYiLCJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTU2ODQ4NjIxMywiYWNjZXNzX3Rva2VuIjp7ImlzcyI6Imh0dHBzOi8vZGV2LmFwaS50YXBpcy5pby90b2tlbnMvdjMiLCJzdWIiOiJkZXZAanN0dWJicyIsInRlbmFudF9pZCI6ImRldiIsInRva2VuX3R5cGUiOiJhY2Nlc3MiLCJkZWxlZ2F0aW9uIjpmYWxzZSwidXNlcm5hbWUiOiJqc3R1YmJzIiwiYWNjb3VudF90eXBlIjoic2VydmljZSIsInR0bCI6MzAwfX0.d6L2s6uLidgsSpnoDsRB2qKJhpiK7moUX6Hd-wAZnms7BvT7uFfq5Pjx6EzChTXSyJYICtLVhOppkDjRKAQI3Rv6HyU3HMKC25r1_hRHLOmCzA2OK3G8Zm8cMAW8iAiamRCriocdxqnWignmDiuRmTGyhLeb2RGtYccX_yz3Hbw"}'  localhost:5001/v3/tokens
 
 {
   "message": "Token generation successful.",
