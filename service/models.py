@@ -4,11 +4,21 @@ import uuid
 
 from common.errors import DAOError
 
-from service import tenants, get_tenant_config, db
+from service import get_tenant_config
 
 # get the logger instance -
 from common.logs import get_logger
 logger = get_logger(__name__)
+
+
+class AccessTokenData(object):
+    """
+    Minimal data needed to create a TapisToken object using the get_derived_values() function.
+    """
+    def __init__(self, token_tenant_id, token_username, account_type):
+        self.token_tenant_id = token_tenant_id
+        self.token_username = token_username
+        self.account_type = account_type
 
 
 class TapisToken(object):

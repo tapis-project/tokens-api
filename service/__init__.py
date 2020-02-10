@@ -5,6 +5,9 @@ from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
+from common.logs import get_logger
+logger = get_logger(__name__)
+
 
 def add_tenant_private_keys():
     """
@@ -28,7 +31,7 @@ def add_tenant_private_keys():
 
 
 tenants = add_tenant_private_keys()
-
+logger.debug("Inside tokens.__init__, got tenants")
 
 def get_tenant_config(tenant_id):
     """
