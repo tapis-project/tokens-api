@@ -143,6 +143,9 @@ components:
     NewAccessTokenResponse:
       type: object
       properties:
+        jti:
+          type: string
+          description: The uuid for this token.
         access_token:
           type: string
           description: The generated access token.
@@ -156,6 +159,9 @@ components:
     NewRefreshTokenResponse:
       type: object
       properties:
+        jri:
+          type: string
+          description: The uuid for this token.
         refresh_token:
           type: string
           description: The generated refresh token.

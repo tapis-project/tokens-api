@@ -101,6 +101,7 @@ class TapisToken(object):
     @property
     def serialize(self):
         return {
+            'jti': self.jti,
             f'{self.token_type}_token': self.jwt.decode('utf-8'),
             'expires_in': self.ttl,
             'expires_at': self.expires_at
@@ -163,7 +164,7 @@ class TapisAccessToken(TapisToken):
             raise DAOError("Missing required token attribute.")
 
         # generate a jti
-        result['jti'] = uuid.uuid4()
+        result['jti'] = str(uuid.uuid4())
 
         # compute the subject from the parts
         result['sub'] = TapisToken.compute_sub(result['tenant_id'], result['username'])
@@ -210,7 +211,7 @@ class TapisRefreshToken(TapisToken):
     @classmethod
     def get_derived_values(cls, data):
         result = data
-        result['jti'] = uuid.uuid4()
+        result['jti'] = str(uuid.uuid4())
         refresh_token_ttl = result.pop('refresh_token_ttl', None)
         if not refresh_token_ttl:
             tenant = get_tenant_config(result['tenant_id'])
