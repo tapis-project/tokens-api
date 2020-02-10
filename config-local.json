@@ -1,6 +1,6 @@
 {
   "service_name": "tokens",
-  "use_sk": false,
+  "use_sk": true,
   "tenants": ["dev"],
   "log_level": "DEBUG"
 }
