@@ -1,3 +1,4 @@
+import uuid
 from common.auth import get_service_tapy_client
 from common.config import conf
 from common import errors as common_errors
@@ -18,8 +19,8 @@ SERVICE_TOKEN_TTL = 60*60*24*365*10
 # this is the Tapis client that tokens will use for interacting with other services, such as the security kernel.
 token_tenant = get_tenant_config(tenant_id=conf.service_tenant_id)
 logger.debug('got token_tenant')
-d = AccessTokenData(token_tenant_id=conf.service_tenant_id, token_username=conf.service_name, account_type = 'service')
-d.access_token_ttl =  SERVICE_TOKEN_TTL
+d = AccessTokenData(jti=uuid.uuid4(), token_tenant_id=conf.service_tenant_id, token_username=conf.service_name, account_type = 'service')
+d.access_token_ttl = SERVICE_TOKEN_TTL
 token_data = TapisAccessToken.get_derived_values(d)
 jwt = TapisAccessToken(**token_data)
 jwt.sign_token()

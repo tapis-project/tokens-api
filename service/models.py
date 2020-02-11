@@ -15,7 +15,8 @@ class AccessTokenData(object):
     """
     Minimal data needed to create a TapisToken object using the get_derived_values() function.
     """
-    def __init__(self, token_tenant_id, token_username, account_type):
+    def __init__(self, jti, token_tenant_id, token_username, account_type):
+        self.jti = jti
         self.token_tenant_id = token_tenant_id
         self.token_username = token_username
         self.account_type = account_type
