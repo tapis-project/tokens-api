@@ -159,7 +159,7 @@ components:
     NewRefreshTokenResponse:
       type: object
       properties:
-        jri:
+        jti:
           type: string
           description: The uuid for this token.
         refresh_token:

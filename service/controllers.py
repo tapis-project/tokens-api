@@ -21,7 +21,6 @@ from common.logs import get_logger
 logger = get_logger(__name__)
 
 
-
 class TokensResource(Resource):
     """
     Work with Tapis Tokens
@@ -70,9 +69,10 @@ class TokensResource(Resource):
         token_data = refresh_token_data['tapis/access_token']
         token_data.pop('tapis/token_type')
         token_data['exp'] = TapisAccessToken.compute_exp(token_data['ttl'])
+        # token_data['jti'] = uuid.uuid4()
         # create a dictionary of data that can be used to instantiate access and refresh tokens; the constructors
         # require variable names that do not include the Tapis prefix, so we need to remove that -
-        new_token_data = { 'jti': uuid.uuid4(),
+        new_token_data = { 'jti': str(uuid.uuid4()),
                            'iss': token_data.pop('iss'),
                            'sub': token_data.pop('sub'),
                            'tenant_id': token_data.pop('tapis/tenant_id'),

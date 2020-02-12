@@ -53,6 +53,7 @@ def test_get_refresh_token(client):
     assert "refresh_token" in response.json['result'].keys()
     refresh_token = response.json['result']['refresh_token']['refresh_token']
     access_token = response.json['result']['access_token']['access_token']
+    jti = response.json['result']['access_token']['jti']
 
     payload2 = {
         "tenant_id": "dev",
@@ -64,11 +65,12 @@ def test_get_refresh_token(client):
         data=json.dumps(payload2),
         content_type='application/json'
     )
-
+    jti2 = response2.json['result']['access_token']['jti']
     assert "refresh_token" in response2.json['result'].keys()
     assert "access_token" in response2.json['result'].keys()
     assert refresh_token != response2.json['result']['refresh_token']
     assert access_token != response2.json['result']['access_token']
+    assert jti != jti2
 
 
 def test_bad_refresh_token_gives_correct_error(client):
