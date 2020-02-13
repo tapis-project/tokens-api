@@ -117,7 +117,7 @@ class TapisAccessToken(TapisToken):
     delegation_sub = None
 
     # these are the standard Tapis access token claims and cannot appear in the extra_claims parameter -
-    standard_tapis_access_claims = ('iss', 'sub', 'tenant', 'username', 'account_type', 'exp', 'jti')
+    standard_tapis_access_claims = ('jti', 'iss', 'sub', 'tenant', 'username', 'account_type', 'exp')
 
     def __init__(self, jti, iss, sub, tenant_id, username, account_type, ttl, exp, delegation, delegation_sub=None,
                  extra_claims=None):
@@ -219,6 +219,7 @@ class TapisRefreshToken(TapisToken):
             refresh_token_ttl = tenant['refresh_token_ttl']
         result['ttl'] = refresh_token_ttl
         result['exp'] = TapisToken.compute_exp(refresh_token_ttl)
+        logger.info(f'HERE IS THE RESULT: {result}')
         return result
 
     def claims_to_dict(self):
@@ -227,7 +228,7 @@ class TapisRefreshToken(TapisToken):
         :return:
         """
         d = {
-            'jti': self.jti,
+            'jti': str(uuid.uuid4()), # self.jti,
             'iss': self.iss,
             'sub': self.sub,
             # we store the initial ttl on a refresh token because, when using the refresh operation, a new
