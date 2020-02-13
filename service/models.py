@@ -67,7 +67,7 @@ class TapisToken(object):
         self.extra_claims = extra_claims
 
         # derived attributes
-        self.expires_at = str(self.exp)
+        self.expires_at = self.exp.isoformat()
 
         # raw jwt ----
         self.jwt = None
@@ -89,9 +89,7 @@ class TapisToken(object):
         :param ttl:
         :return:
         """
-        exp_str = (datetime.datetime.now(datetime.timezone.utc) +
-                   datetime.timedelta(seconds=ttl)).isoformat()
-        exp = dateutil.parser.parse(exp_str)
+        exp = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=ttl)
 
         return exp
 
