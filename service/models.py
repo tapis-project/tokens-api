@@ -1,6 +1,7 @@
 import datetime
 import jwt
 import uuid
+import dateutil.parser
 
 from common.errors import DAOError
 
@@ -88,7 +89,11 @@ class TapisToken(object):
         :param ttl:
         :return:
         """
-        return datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
+        exp_str = (datetime.datetime.now(datetime.timezone.utc) +
+                   datetime.timedelta(seconds=ttl)).isoformat()
+        exp = dateutil.parser.parse(exp_str)
+
+        return exp
 
     @classmethod
     def compute_sub(cls, tenant_id, username):
