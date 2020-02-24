@@ -178,7 +178,7 @@ class TapisAccessToken(TapisToken):
 
         # compute optional fields -
         access_token_ttl = getattr(data, 'access_token_ttl', None)
-        if not access_token_ttl:
+        if not access_token_ttl or access_token_ttl <= 0:
             access_token_ttl = tenant['access_token_ttl']
         result['ttl'] = access_token_ttl
         result['exp'] = TapisToken.compute_exp(access_token_ttl)
@@ -217,12 +217,11 @@ class TapisRefreshToken(TapisToken):
         result = data
         result['jti'] = str(uuid.uuid4())
         refresh_token_ttl = result.pop('refresh_token_ttl', None)
-        if not refresh_token_ttl:
+        if not refresh_token_ttl or refresh_token_ttl <= 0:
             tenant = get_tenant_config(result['tenant_id'])
             refresh_token_ttl = tenant['refresh_token_ttl']
         result['ttl'] = refresh_token_ttl
         result['exp'] = TapisToken.compute_exp(refresh_token_ttl)
-        logger.info(f'HERE IS THE RESULT: {result}')
         return result
 
     def claims_to_dict(self):

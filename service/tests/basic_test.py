@@ -141,9 +141,43 @@ def test_custom_ttls(client):
         content_type='application/json'
     )
     assert response2.status_code == 200
+    assert response2.json['result']['access_token']['expires_in'] == 14400
+    assert response2.json['result']['refresh_token']['expires_in'] == 7776000
+
+def test_custom_ttls_cannot_be_zero(client):
+    payload = {
+        "token_tenant_id": "dev",
+        "account_type": "service",
+        "token_username": "jstubbs",
+        "access_token_ttl": 0,
+        "generate_refresh_token": True,
+        "refresh_token_ttl": 0,
+    }
+    response = client.post(
+        "http://localhost:5000/v3/tokens",
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+    assert response.status_code == 200
+
+    # If the ttl is set as 0 by the user, the default will be used instead
+    assert response.json['result']['access_token']['expires_in'] != 0
+    assert response.json['result']['refresh_token']['expires_in'] != 0
+
+    refresh_token = response.json['result']['refresh_token']['refresh_token']
+
+    # now, refresh the token and make sure new access and refresh have the original custom ttl's
+    payload2 = {
+        "refresh_token": refresh_token
+    }
+    response2 = client.put(
+        "http://localhost:5000/v3/tokens",
+        data=json.dumps(payload2),
+        content_type='application/json'
+    )
+    assert response2.status_code == 200
     response2.json['result']['access_token']['expires_in'] == 14400
     response2.json['result']['refresh_token']['expires_in'] == 7776000
-
 
 def test_custom_claims_show_up_after_refresh(client):
 
