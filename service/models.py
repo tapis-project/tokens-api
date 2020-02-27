@@ -1,5 +1,8 @@
 import datetime
 import jwt
+import uuid
+import dateutil.parser
+
 from common.errors import DAOError
 
 from service import get_tenant_config
@@ -13,7 +16,8 @@ class AccessTokenData(object):
     """
     Minimal data needed to create a TapisToken object using the get_derived_values() function.
     """
-    def __init__(self, token_tenant_id, token_username, account_type):
+    def __init__(self, jti, token_tenant_id, token_username, account_type):
+        self.jti = jti
         self.token_tenant_id = token_tenant_id
         self.token_username = token_username
         self.account_type = account_type
@@ -29,6 +33,7 @@ class TapisToken(object):
     alg = None
 
     # claims ----
+    jti = None
     iss = None
     sub = None
     token_type = None
@@ -40,7 +45,7 @@ class TapisToken(object):
     # non-standard claims are namespaced with the following text -
     NAMESPACE_PRETEXT = 'tapis/'
 
-    def __init__(self, iss, sub, token_type, tenant_id, username, account_type, ttl, exp, extra_claims=None, alg='RS256'):
+    def __init__(self, jti, iss, sub, token_type, tenant_id, username, account_type, ttl, exp, extra_claims=None, alg='RS256'):
         # header -----
         self.typ = TapisToken.typ
         self.alg = alg
@@ -51,6 +56,7 @@ class TapisToken(object):
         self.ttl = ttl
 
         # claims -----
+        self.jti = jti
         self.iss = iss
         self.sub = sub
         self.token_type = token_type
@@ -61,7 +67,7 @@ class TapisToken(object):
         self.extra_claims = extra_claims
 
         # derived attributes
-        self.expires_at = str(self.exp)
+        self.expires_at = self.exp.isoformat()
 
         # raw jwt ----
         self.jwt = None
@@ -83,7 +89,9 @@ class TapisToken(object):
         :param ttl:
         :return:
         """
-        return datetime.datetime.utcnow() + datetime.timedelta(seconds=ttl)
+        exp = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=ttl)
+
+        return exp
 
     @classmethod
     def compute_sub(cls, tenant_id, username):
@@ -97,6 +105,7 @@ class TapisToken(object):
     @property
     def serialize(self):
         return {
+            'jti': self.jti,
             f'{self.token_type}_token': self.jwt.decode('utf-8'),
             'expires_in': self.ttl,
             'expires_at': self.expires_at
@@ -111,11 +120,11 @@ class TapisAccessToken(TapisToken):
     delegation_sub = None
 
     # these are the standard Tapis access token claims and cannot appear in the extra_claims parameter -
-    standard_tapis_access_claims = ('iss', 'sub', 'tenant', 'username', 'account_type', 'exp')
+    standard_tapis_access_claims = ('jti', 'iss', 'sub', 'tenant', 'username', 'account_type', 'exp')
 
-    def __init__(self, iss, sub, tenant_id, username, account_type, ttl, exp, delegation, delegation_sub=None,
+    def __init__(self, jti, iss, sub, tenant_id, username, account_type, ttl, exp, delegation, delegation_sub=None,
                  extra_claims=None):
-        super().__init__(iss, sub, 'access', tenant_id, username, account_type, ttl, exp, extra_claims)
+        super().__init__(jti, iss, sub, 'access', tenant_id, username, account_type, ttl, exp, extra_claims)
         self.extra_claims = extra_claims
         self.delegation = delegation
         self.delegation_sub = delegation_sub
@@ -126,6 +135,7 @@ class TapisAccessToken(TapisToken):
         :return:
         """
         d = {
+            'jti': self.jti,
             'iss': self.iss,
             'sub': self.sub,
             f'{TapisToken.NAMESPACE_PRETEXT}tenant_id': self.tenant_id,
@@ -139,7 +149,6 @@ class TapisAccessToken(TapisToken):
         if self.extra_claims:
             d.update(self.extra_claims)
         return d
-
 
     @classmethod
     def get_derived_values(cls, data):
@@ -158,6 +167,9 @@ class TapisAccessToken(TapisToken):
             logger.error(f"Missing required token attribute; KeyError: {e}")
             raise DAOError("Missing required token attribute.")
 
+        # generate a jti
+        result['jti'] = str(uuid.uuid4())
+
         # compute the subject from the parts
         result['sub'] = TapisToken.compute_sub(result['tenant_id'], result['username'])
         tenant = get_tenant_config(result['tenant_id'])
@@ -166,7 +178,7 @@ class TapisAccessToken(TapisToken):
 
         # compute optional fields -
         access_token_ttl = getattr(data, 'access_token_ttl', None)
-        if not access_token_ttl:
+        if not access_token_ttl or access_token_ttl <= 0:
             access_token_ttl = tenant['access_token_ttl']
         result['ttl'] = access_token_ttl
         result['exp'] = TapisToken.compute_exp(access_token_ttl)
@@ -195,16 +207,17 @@ class TapisRefreshToken(TapisToken):
     """
     access_token = None
 
-    def __init__(self, iss, sub, tenant_id, username, account_type, ttl, exp, access_token):
-        super().__init__(iss, sub, 'refresh', tenant_id, username, account_type, ttl, exp, None)
+    def __init__(self, jti, iss, sub, tenant_id, username, account_type, ttl, exp, access_token):
+        super().__init__(jti, iss, sub, 'refresh', tenant_id, username, account_type, ttl, exp, None)
         self.access_token = access_token
 
 
     @classmethod
     def get_derived_values(cls, data):
         result = data
+        result['jti'] = str(uuid.uuid4())
         refresh_token_ttl = result.pop('refresh_token_ttl', None)
-        if not refresh_token_ttl:
+        if not refresh_token_ttl or refresh_token_ttl <= 0:
             tenant = get_tenant_config(result['tenant_id'])
             refresh_token_ttl = tenant['refresh_token_ttl']
         result['ttl'] = refresh_token_ttl
@@ -217,6 +230,7 @@ class TapisRefreshToken(TapisToken):
         :return:
         """
         d = {
+            'jti': str(uuid.uuid4()), # self.jti,
             'iss': self.iss,
             'sub': self.sub,
             # we store the initial ttl on a refresh token because, when using the refresh operation, a new

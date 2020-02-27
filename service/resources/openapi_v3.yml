@@ -165,7 +165,7 @@ components:
     NewRefreshTokenResponse:
       type: object
       properties:
-        access_token:
+        refresh_token:
           type: string
           description: The generated refresh token.
         expires_at:

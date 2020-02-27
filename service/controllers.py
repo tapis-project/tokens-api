@@ -1,5 +1,6 @@
 import copy
 import traceback
+import uuid
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -18,7 +19,6 @@ from service import db
 # get the logger instance -
 from common.logs import get_logger
 logger = get_logger(__name__)
-
 
 
 class TokensResource(Resource):
@@ -69,9 +69,11 @@ class TokensResource(Resource):
         token_data = refresh_token_data['tapis/access_token']
         token_data.pop('tapis/token_type')
         token_data['exp'] = TapisAccessToken.compute_exp(token_data['ttl'])
+        token_data['jti'] = str(uuid.uuid4())
         # create a dictionary of data that can be used to instantiate access and refresh tokens; the constructors
         # require variable names that do not include the Tapis prefix, so we need to remove that -
-        new_token_data = { 'iss': token_data.pop('iss'),
+        new_token_data = { 'jti': token_data.pop('jti'),
+                           'iss': token_data.pop('iss'),
                            'sub': token_data.pop('sub'),
                            'tenant_id': token_data.pop('tapis/tenant_id'),
                            'username': token_data.pop('tapis/username'),
