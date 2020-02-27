@@ -26,7 +26,10 @@ def add_tenant_private_keys():
             result.append(tenant)
         else:
             # TODO -- get the PK from the security kernel...
-            pass
+            tenant['private_key'] = conf.dev_jwt_private_key
+            tenant['access_token_ttl'] = conf.dev_default_access_token_ttl
+            tenant['refresh_token_ttl'] = conf.dev_default_refresh_token_ttl
+            result.append(tenant)
     return result
 
 
@@ -42,6 +45,7 @@ def get_tenant_config(tenant_id):
     for tenant in tenants:
         if tenant['tenant_id'] == tenant_id:
             return tenant
+    logger.error(f'did not find tenant_id: {tenant_id}')
     raise errors.BaseTapisError("invalid tenant id.")
 
 

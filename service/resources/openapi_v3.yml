@@ -18,11 +18,15 @@ servers:
   description: Local Development
 - url: http://localhost:5001
   description: Local Development II
+- url: http://tokens:5000
+  description: Local Development III
 
 
 paths:
   /v3/tokens:
     post:
+      security:
+        - basicAuth: []
       tags:
       - Tokens
       summary: Generate a token.
@@ -74,6 +78,11 @@ paths:
 
 
 components:
+  securitySchemes:
+    basicAuth:     # <-- arbitrary name for the security scheme
+      type: http
+      scheme: basic
+
   schemas:
     BasicResponse:
       type: object
@@ -165,4 +174,3 @@ components:
         expires_in:
           type: integer
           description: The time, in seconds, when the generated refresh token expires.
-

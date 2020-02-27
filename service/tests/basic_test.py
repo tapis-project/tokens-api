@@ -1,8 +1,10 @@
+from base64 import b64encode
 import pytest
 import json
 from unittest import TestCase
 from service.api import app
 from common import auth
+from common.config import conf
 
 # These tests are intended to be run locally.
 
@@ -19,7 +21,14 @@ def test_invalid_post(client):
         assert response.status_code == 400
 
 
+def get_basic_auth_header():
+    user_pass = bytes(f"tokens:{conf.service_password}", 'utf-8')
+    return {'Authorization': 'Basic {}'.format(b64encode(user_pass).decode()),
+            'X-Tapis-Tenant': 'master'}
+
+
 def test_valid_post(client):
+
     with client:
         payload = {
             'token_tenant_id': 'dev',
@@ -31,9 +40,10 @@ def test_valid_post(client):
         response = client.post(
             "http://localhost:5000/v3/tokens",
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
+            headers=get_basic_auth_header()
         )
-
+        print(f"response.data: {response.data}")
         assert response.status_code == 200
 
 
@@ -48,7 +58,8 @@ def test_get_refresh_token(client):
     response = client.post(
         "http://localhost:5000/v3/tokens",
         data=json.dumps(payload),
-        content_type='application/json'
+        content_type='application/json',
+        headers=get_basic_auth_header()
     )
     assert "refresh_token" in response.json['result'].keys()
     refresh_token = response.json['result']['refresh_token']['refresh_token']
@@ -97,8 +108,10 @@ def test_custom_claims_show_up_in_access_token(client):
     response = client.post(
         "http://localhost:5000/v3/tokens",
         data=json.dumps(payload),
-        content_type='application/json'
+        content_type='application/json',
+        headers=get_basic_auth_header()
     )
+    print(f"response.data: {response.data}")
 
     assert response.status_code == 200
     access_token = response.json['result']['access_token']['access_token']
@@ -121,7 +134,8 @@ def test_custom_ttls(client):
     response = client.post(
         "http://localhost:5000/v3/tokens",
         data=json.dumps(payload),
-        content_type='application/json'
+        content_type='application/json',
+        headers=get_basic_auth_header()
     )
     assert response.status_code == 200
     response.json['result']['access_token']['expires_in'] == 14400
@@ -157,7 +171,8 @@ def test_custom_claims_show_up_after_refresh(client):
     response = client.post(
         "http://localhost:5000/v3/tokens",
         data=json.dumps(payload),
-        content_type='application/json'
+        content_type='application/json',
+        headers=get_basic_auth_header()
     )
 
     # Check that the first access token has the custom claim
