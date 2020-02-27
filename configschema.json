@@ -21,6 +21,11 @@
       "type": "integer",
       "description": "The default TTL for refresh tokens in dev mode. NOTE: This should NOT be used in production",
       "default": 600
+    },
+    "use_allservices_password": {
+      "type": "boolean",
+      "description": "When use_sk+True, determines whether Tokens API checks a single password ('allservices') for all services, or whether it checks passwords named for individual services. This property should be FALSE in prpoduction. ",
+      "default": false
     }
   },
   "required": ["tenants"]
