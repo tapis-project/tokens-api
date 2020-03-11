@@ -3,5 +3,5 @@
   "use_sk": false,
   "tenants": ["dev", "master"],
   "log_level": "DEBUG",
-  "use_allservices_password": true
+  "use_allservices_password": false
 }
