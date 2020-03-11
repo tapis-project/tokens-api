@@ -6,7 +6,7 @@ from common import errors as common_errors
 from flask import g, request
 from service.errors import InvalidTokenClaimsError
 from service.models import AccessTokenData, TapisAccessToken
-from service import get_tenant_config
+from service import tenants
 
 # get the logger instance -
 from common.logs import get_logger
@@ -18,7 +18,7 @@ logger.debug("top of auth.py")
 SERVICE_TOKEN_TTL = 60*60*24*365*10
 
 # this is the Tapis client that tokens will use for interacting with other services, such as the security kernel.
-token_tenant = get_tenant_config(tenant_id=conf.service_tenant_id)
+token_tenant = tenants.get_tenant_config(tenant_id=conf.service_tenant_id)
 logger.debug('got token_tenant')
 d = AccessTokenData(jti=uuid.uuid4(), token_tenant_id=conf.service_tenant_id, token_username=conf.service_name, account_type = 'service')
 d.access_token_ttl = SERVICE_TOKEN_TTL
@@ -53,9 +53,21 @@ def authn_and_authz():
             # check for basic auth header:
             parts = get_basic_auth_parts()
             if parts:
+                # check that request POST data contains tenant_id and username and that the username matches that
+                # in the HTTP Basic Auth header; otherwise, service could impersonate other services/tenants.
+                try:
+                    tenant_id = request.get_json().get('token_tenant_id')
+                    username = request.get_json().get('token_username')
+                except Exception as e:
+                    logger.info(f"Got exception trying to parse JSON form request; e: {e}; type(e):{type(e)}")
+                    raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?')
+                if not username == parts['username']:
+                    raise common_errors.AuthenticationError('Invalid POST data -- username does not match auth header.')
+                if not tenant_id:
+                    raise common_errors.AuthenticationError('Invalid POST data -- tenant_id missing from POST data.')
                 # do basic auth with SK and tapis client.
                 logger.debug("got parts, checking service password..")
-                check_service_password(parts['tenant_id'], parts['username'], parts['password'])
+                check_service_password(tenant_id, parts['username'], parts['password'])
                 return True
             else:
                 # check for a Tapis token -- this call should put username and tenant on the g object
@@ -77,17 +89,12 @@ def get_basic_auth_parts():
         * password: the "password" field of the Basic Auth header (decoded).
     """
     logger.debug("top of get_basic_auth_parts")
-    # this is such a common mistake, we call it out with a specific error
-    if  'Authorization' in request.headers and not 'X-Tapis-Tenant' in request.headers:
-        logger.debug(f"X-Tapis-Tenant header missing; headers: {request.headers}")
-        raise common_errors.AuthenticationError('HTTP Basic Authorization header present but X-Tapis-Tenant header missing.')
-    if 'X-Tapis-Tenant' in request.headers and 'Authorization' in request.headers:
+    if 'Authorization' in request.headers:
         logger.debug("request contained a basic auth header... building parts.")
         auth = request.authorization
         logger.debug(f"auth = {auth}")
         try:
-            return {'tenant_id': request.headers.get('X-Tapis-Tenant'),
-                    'username': auth.username,
+            return {'username': auth.username,
                     'password': auth.password}
         except Exception as e:
             logger.error(f"Got exception trying to retrieve the username and password from the headers. e: {e}")
@@ -96,10 +103,11 @@ def get_basic_auth_parts():
 
 
 def check_service_password(tenant_id, username, password):
-    secret_name = f'{tenant_id}.{username}.password'
+    secret_name = f'{tenant_id}+{username}+password'
     # when use_allservices_password is True, we check  single password for all services (as a convenience)
     if conf.use_allservices_password:
-        secret_name = f'{tenant_id}.allservices.password'
+        secret_name = f'{tenant_id}+allservices+password'
+    logger.debug(f"Checking secret: {secret_name}")
     try:
         result = t.sk.readSecret(secretType='service', secretName=secret_name)
     except tapy.errors.InvalidInputError as e:

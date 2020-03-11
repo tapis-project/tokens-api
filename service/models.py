@@ -5,7 +5,7 @@ import dateutil.parser
 
 from common.errors import DAOError
 
-from service import get_tenant_config
+from service import tenants
 
 # get the logger instance -
 from common.logs import get_logger
@@ -77,7 +77,7 @@ class TapisToken(object):
         Sign the token using the private key associated with the tenant.
         :return:
         """
-        tenant = get_tenant_config(self.tenant_id)
+        tenant = tenants.get_tenant_config(self.tenant_id)
         private_key = tenant['private_key']
         self.jwt = jwt.encode(self.claims_to_dict(), private_key, algorithm=self.alg)
         return self.jwt
@@ -172,7 +172,7 @@ class TapisAccessToken(TapisToken):
 
         # compute the subject from the parts
         result['sub'] = TapisToken.compute_sub(result['tenant_id'], result['username'])
-        tenant = get_tenant_config(result['tenant_id'])
+        tenant = tenants.get_tenant_config(result['tenant_id'])
         # derive the issuer from the associated config for the tenant.
         result['iss'] = tenant['iss']
 
@@ -218,7 +218,7 @@ class TapisRefreshToken(TapisToken):
         result['jti'] = str(uuid.uuid4())
         refresh_token_ttl = result.pop('refresh_token_ttl', None)
         if not refresh_token_ttl or refresh_token_ttl <= 0:
-            tenant = get_tenant_config(result['tenant_id'])
+            tenant = tenants.get_tenant_config(result['tenant_id'])
             refresh_token_ttl = tenant['refresh_token_ttl']
         result['ttl'] = refresh_token_ttl
         result['exp'] = TapisToken.compute_exp(refresh_token_ttl)
