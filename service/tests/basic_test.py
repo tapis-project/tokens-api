@@ -22,7 +22,7 @@ def test_invalid_post(client):
 
 
 def get_basic_auth_header():
-    user_pass = bytes(f"tokens:{conf.service_password}", 'utf-8')
+    user_pass = bytes(f"tenants:{conf.tests_tenants_service_password}", 'utf-8')
     return {'Authorization': 'Basic {}'.format(b64encode(user_pass).decode()),
             'X-Tapis-Tenant': 'master'}
 
@@ -31,10 +31,9 @@ def test_valid_post(client):
 
     with client:
         payload = {
-            'token_tenant_id': 'dev',
+            'token_tenant_id': 'master',
             'account_type': 'service',
-            'token_username': 'files',
-
+            'token_username': 'tenants',
         }
 
         response = client.post(
@@ -49,12 +48,11 @@ def test_valid_post(client):
 
 def test_get_refresh_token(client):
     payload = {
-        "token_tenant_id": "dev",
+        "token_tenant_id": "master",
         "account_type": "service",
-        "token_username": "jstubbs",
+        "token_username": "tenants",
         "generate_refresh_token": True
     }
-
     response = client.post(
         "http://localhost:5000/v3/tokens",
         data=json.dumps(payload),
@@ -67,7 +65,7 @@ def test_get_refresh_token(client):
     jti = response.json['result']['access_token']['jti']
 
     payload2 = {
-        "tenant_id": "dev",
+        "tenant_id": "master",
         "refresh_token": refresh_token
     }
 
@@ -100,9 +98,9 @@ def test_bad_refresh_token_gives_correct_error(client):
 
 def test_custom_claims_show_up_in_access_token(client):
     payload = {
-        "token_tenant_id": "dev",
+        "token_tenant_id": "master",
         "account_type": "service",
-        "token_username": "jstubbs",
+        "token_username": "tenants",
         "generate_refresh_token": True,
         "claims": {"test_claim": "here it is!"}
     }
@@ -124,9 +122,9 @@ def test_custom_claims_show_up_in_access_token(client):
 
 def test_custom_ttls(client):
     payload = {
-        "token_tenant_id": "dev",
+        "token_tenant_id": "master",
         "account_type": "service",
-        "token_username": "jstubbs",
+        "token_username": "tenants",
         # 4 hour access token
         "access_token_ttl": 14400,
         "generate_refresh_token": True,
@@ -160,9 +158,9 @@ def test_custom_ttls(client):
 
 def test_custom_ttls_cannot_be_zero(client):
     payload = {
-        "token_tenant_id": "dev",
+        "token_tenant_id": "master",
         "account_type": "service",
-        "token_username": "jstubbs",
+        "token_username": "tenants",
         "access_token_ttl": 0,
         "generate_refresh_token": True,
         "refresh_token_ttl": 0,
@@ -170,7 +168,8 @@ def test_custom_ttls_cannot_be_zero(client):
     response = client.post(
         "http://localhost:5000/v3/tokens",
         data=json.dumps(payload),
-        content_type='application/json'
+        content_type='application/json',
+        headers = get_basic_auth_header()
     )
     assert response.status_code == 200
 
@@ -197,9 +196,9 @@ def test_custom_claims_show_up_after_refresh(client):
 
     # First, get an access token
     payload = {
-        "token_tenant_id": "dev",
+        "token_tenant_id": "master",
         "account_type": "service",
-        "token_username": "jstubbs",
+        "token_username": "tenants",
         "generate_refresh_token": True,
         "claims": {"test_claim": "here it is!"}
     }

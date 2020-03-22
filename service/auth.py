@@ -59,7 +59,7 @@ def authn_and_authz():
                     tenant_id = request.get_json().get('token_tenant_id')
                     username = request.get_json().get('token_username')
                 except Exception as e:
-                    logger.info(f"Got exception trying to parse JSON form request; e: {e}; type(e):{type(e)}")
+                    logger.info(f"Got exception trying to parse JSON from request; e: {e}; type(e):{type(e)}")
                     raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?')
                 if not username == parts['username']:
                     raise common_errors.AuthenticationError('Invalid POST data -- username does not match auth header.')
@@ -73,8 +73,24 @@ def authn_and_authz():
                 # check for a Tapis token -- this call should put username and tenant on the g object
                 logger.debug("did not get parts, checking for tapis token..")
                 authentication()
-                # now, check with SK that service is authorized for the action; must have required permission...
-                # TODO ...
+                # now, check with SK that service is authorized for the action. Token generation is controlled by a
+                # specific role corresponding to the tenant
+                try:
+                    tenant_id = request.get_json().get('token_tenant_id')
+                except Exception as e:
+                    logger.info(f"Got exception trying to parse JSON from Tapis token request; e: {e}; type(e):{type(e)}")
+                    raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?')
+                role_name = f'{tenant_id}_token_generator'
+                try:
+                    users = t.sk.getUsersWithRole(tenant='master', roleName=role_name)
+                except Exception as e:
+                    msg = f'Got an error calling the SK to get users with role {role_name}. Exception: {e}'
+                    logger.error(msg)
+                    raise common_errors.PermissionsError(
+                        msg=f'Could not verify permissions with the Security Kernel; additional info: {e}')
+                if g.username not in users.names:
+                    logger.info(f"user {g.username} was not in role {role_name}. raising permissions error.")
+                    raise common_errors.PermissionsError(msg=f'Not authorized to generate tokens in tenant {tenant_id}.')
                 return True
 
 
@@ -103,13 +119,17 @@ def get_basic_auth_parts():
 
 
 def check_service_password(tenant_id, username, password):
-    secret_name = f'{tenant_id}+{username}+password'
+    # update 3/2020: "password" is now the secret name in the SK for all service passwords, as the user and
+    # tenant are now encoded in the path, passed in as specific attributes to the API call.
+    secret_name = 'password'
     # when use_allservices_password is True, we check  single password for all services (as a convenience)
-    if conf.use_allservices_password:
-        secret_name = f'{tenant_id}+allservices+password'
+    # update 3/2020: use_allservices_password is not slated for removal.
+    # if conf.use_allservices_password:
+    #     secret_name = 'password'
+    #     # secret_name = f'{tenant_id}+allservices+password'
     logger.debug(f"Checking secret: {secret_name}")
     try:
-        result = t.sk.readSecret(secretType='service', secretName=secret_name)
+        result = t.sk.readSecret(secretType='service', secretName=secret_name, tenant=tenant_id, user=username)
     except tapy.errors.InvalidInputError as e:
         logger.info(f"Got InvalidInputError trying to check service password inside SK secretMap. Exception: {e}")
         raise common_errors.AuthenticationError(msg='Invalid service account/password combination. Service account may not be registered with SK.')
