@@ -134,7 +134,7 @@ def check_service_password(tenant_id, username, password):
         logger.info(f"Got InvalidInputError trying to check service password inside SK secretMap. Exception: {e}")
         raise common_errors.AuthenticationError(msg='Invalid service account/password combination. Service account may not be registered with SK.')
     except Exception as e:
-        logger.debug("")
+        logger.debug(f"got exception from call to readSecret; e: {e}; type(e): {type(e)}")
         if type(e) == common_errors.AuthenticationError:
             raise e
         logger.error(f'Got exception trying to retrieve the secret {secret_name} from SK. Exception: {e}')
