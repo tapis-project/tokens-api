@@ -127,13 +127,14 @@ def check_service_password(tenant_id, username, password):
     # if conf.use_allservices_password:
     #     secret_name = 'password'
     #     # secret_name = f'{tenant_id}+allservices+password'
-    logger.debug(f"Checking secret: {secret_name}")
+    logger.debug(f"top of check_service_password: tenant_id: {tenant_id}; username: {username}; password: {password}")
     try:
         result = t.sk.readSecret(secretType='service', secretName=secret_name, tenant=tenant_id, user=username)
     except tapy.errors.InvalidInputError as e:
         logger.info(f"Got InvalidInputError trying to check service password inside SK secretMap. Exception: {e}")
         raise common_errors.AuthenticationError(msg='Invalid service account/password combination. Service account may not be registered with SK.')
     except Exception as e:
+        logger.debug("")
         if type(e) == common_errors.AuthenticationError:
             raise e
         logger.error(f'Got exception trying to retrieve the secret {secret_name} from SK. Exception: {e}')
