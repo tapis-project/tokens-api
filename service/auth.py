@@ -129,23 +129,23 @@ def check_service_password(tenant_id, username, password):
     #     # secret_name = f'{tenant_id}+allservices+password'
     logger.debug(f"top of check_service_password: tenant_id: {tenant_id}; username: {username}; password: {password}")
     try:
-        result = t.sk.readSecret(secretType='service', secretName=secret_name, tenant=tenant_id, user=username)
+        result = t.sk.validateServicePassword(secretType='service',
+                                              secretName= 'password',
+                                              tenant=tenant_id,
+                                              user=username,
+                                              password=password)
     except tapy.errors.InvalidInputError as e:
         logger.info(f"Got InvalidInputError trying to check service password inside SK secretMap. Exception: {e}")
         raise common_errors.AuthenticationError(msg='Invalid service account/password combination. Service account may not be registered with SK.')
     except Exception as e:
-        logger.debug(f"got exception from call to readSecret; e: {e}; type(e): {type(e)}")
+        logger.debug(f"got exception from call to validateServicePassword; e: {e}; type(e): {type(e)}")
         if type(e) == common_errors.AuthenticationError:
             raise e
         logger.error(f'Got exception trying to retrieve the secret {secret_name} from SK. Exception: {e}')
         raise common_errors.AuthenticationError(msg='Tokens API got an error trying to contact SK to validate service secret.')
-    try:
-        real_pass = result.secretMap.password
-    except Exception as e:
-        logger.error(f"Got exception trying to pull service password from SK secretMap. Exception: {e}")
-        raise common_errors.AuthenticationError(msg='Tokens API was unable to validate service secret with SK.')
-    if not real_pass == password:
-        raise common_errors.AuthenticationError('Invalid password.')
+    if not result.isAuthorized:
+        logger.debug(f"got isAuthorized==False from call to validateServicePassword. Full result: {result}")
+        raise common_errors.AuthenticationError(msg='Tokens API got isAuthorized=False from SK.')
 
 
 def check_extra_claims(extra_claims):
