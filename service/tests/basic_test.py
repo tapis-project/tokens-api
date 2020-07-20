@@ -22,7 +22,7 @@ def test_invalid_post(client):
 
 
 def get_basic_auth_header():
-    user_pass = bytes(f"tenants:{conf.tests_tenants_service_password}", 'utf-8')
+    user_pass = bytes(f"tenants:{conf.allservices_password}", 'utf-8')
     return {'Authorization': 'Basic {}'.format(b64encode(user_pass).decode()),
             'X-Tapis-Tenant': 'master'}
 

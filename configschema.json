@@ -12,10 +12,6 @@
       "description": "A private key to use for signing JWTs in dev mode. NOTE: This should NOT be used in production",
       "default": "-----BEGIN RSA PRIVATE KEY-----\nMIIEpQIBAAKCAQEAz7rr5CsFM7rHMFs7uKIdcczn0uL4ebRMvH8pihrg1tW/fp5Q +5ktltoBTfIaVDrXGF4DiCuzLsuvTG5fGElKEPPcpNqaCzD8Y1v9r3tfkoPT3Bd5 KbF9f6eIwrGERMTs1kv7665pliwehz91nAB9DMqqSyjyKY3tpSIaPKzJKUMsKJjP i9QAS167ylEBlr5PECG4slWLDAtSizoiA3fZ7fpngfNr4H6b2iQwRtPEV/EnSg1N 3Oj1x8ktJPwbReKprHGiEDlqdyT6j58l/I+9ihR6ettkMVCq7Ho/bsIrwm5gP0Pj JRvaD5Flsze7P4gQT37D1c5nbLR+K6/T0QTiyQIDAQABAoIBADjZ31VCsNnHdFw3 m9CcDZLnkUqV84rbXWT5KFUzpfUl6pKsoV06Ps/aOiEq8Sm8MMHqeOz7iL514DP6 wOvUowCgvPIhIaeOcISA2Jz+FtnyWjkR84cFnGMjZrph+uEXQ/oiMX/+68a9rF03 cOiQ+ahWjuSjACN/RFq9SpDweN1hlqUvCffy0W0hzJf4hd1BQKgs6LTnuVruh9lu 2n0f2zxoLmuXkT3IKREV7eYlvv+xKXL9Kctdp+8z49pEFce4ztTsEYILsvv9IzqF DlIn9xRBzVxcDknjanfijZm7hrPMb3goUx481igB5yCng5yTkNPXS9VXZzk0CHlv fUpmYUECgYEA6uTWPIHDL7E0SbUB55lGYJZISIxY505VtxpovwEhUbKgPcUO2fRK WxUAmRuLvaEHEn89F9hM8ZO/S7iYyruKteBUqqx3RXTwMnuSr84SSoT+ICj1LSLk PaslezwaCuu25I2BPpIdwATOeD5byc9DAoKLQ2UqrgS3UgQZRFmSzpcCgYEA4mU/ u1xS6FpnvNks4JZfhqmc6HjgzbkHjSsR9XM7dyhZUspH9IBHy3xN2l14Xd+Pvt3m 3YSeBk2s5DCrtNqFTc54OLrOZ5ULdUzLQC8V3fMl29SelYQCLHdEs871T29zJ5bu GaIQw+Da6yLlBFWtOf+IZukr4VyjZmyreWbzZZ8CgYEAk//9kIA+SHWBuZNIEPH9 auwlvThY59zumwET0I1Yvg4rcuAPvHp0wzDXgKDfimrEdv4es0CBMpFiLcaw1sQV 4QTos+UY/XVxxo0f3o+b7MIhEIhd+sOKReTpJ921lv3v7c/PCGquPgeJRDAeS2jB EvrH3n4Gx0CHdTDJ7sv1eR8CgYEAl+EQ1mLjg9lSitCvWKPIxhB3oUWmmpyswjnI vH9nv1KkSfRGPXLpt0tW902JeICIcKVxQd68HMJzYEp+hr+qej4vTO+VlMvaegDg wdhUtSdvmICVOvzqcGY7At2umHHOMRsB9NRSpvXsJ56rQTMxGR2ipld7Bp8dR5NT nghA9UUCgYEApZMGU+y3Y0olJWsL/Dr1BRoJhQUjXXE79cf+OKMeNfwIjdMjIWkh waM76LsW06PMnoHML331VgPcz5TCRuJ46gnrIuBd+gXNgXj0Ire+fhP0/X23gpjb K/ozazR7rLvsm07+20d6T6nKPuMu4uTlDGAY4db0WO4KUDwRUCpZ2J0=\n-----END RSA PRIVATE KEY-----"
     },
-    "tests_tenants_service_password": {
-      "type": "string",
-      "description": "For the tokens test suite, the password it should use for the tenants service (it requests tokens for the tenants service)."
-    },
     "dev_default_access_token_ttl": {
       "type": "integer",
       "description": "The default TTL for access tokens in dev mode. NOTE: This should NOT be used in production",
@@ -30,6 +26,10 @@
       "type": "boolean",
       "description": "When use_sk+True, determines whether Tokens API checks a single password ('allservices') for all services, or whether it checks passwords named for individual services. This property should be FALSE in prpoduction. ",
       "default": false
+    },
+    "allservices_password": {
+      "type": "string",
+      "description": "When use_allservices_password is True, the associated password that the service will check."
     }
   },
   "required": ["tenants"]

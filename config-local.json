@@ -1,8 +1,7 @@
 {
   "service_name": "tokens",
-  "tests_tenants_service_password": "<to_do_get_from_stache>",
-  "use_sk": false,
+  "use_sk": true,
   "tenants": ["dev", "master"],
   "log_level": "DEBUG",
-  "use_allservices_password": false
+  "use_allservices_password": true
 }

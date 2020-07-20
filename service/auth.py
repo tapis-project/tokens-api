@@ -128,6 +128,16 @@ def check_service_password(tenant_id, username, password):
     #     secret_name = 'password'
     #     # secret_name = f'{tenant_id}+allservices+password'
     logger.debug(f"top of check_service_password: tenant_id: {tenant_id}; username: {username}; password: {password}")
+    # we only allow use of the "allservices_password" configuration in develop --
+    if conf.use_allservices_password and "develop" in conf.service_tenant_base_url:
+        logger.info("allowing check of the allservices_password")
+        if conf.allservices_password and conf.allservices_password == password:
+            logger.info("allservices_password was correct; issuing token.")
+            return True
+        else:
+            logger.debug(f"allservices_password was incorrect; password passed: {password}; "
+                         f"actual: {conf.allservices_password}")
+
     try:
         result = t.sk.validateServicePassword(secretType='service',
                                               secretName= 'password',

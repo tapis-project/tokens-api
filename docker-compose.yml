@@ -33,8 +33,16 @@ services:
             - ./service.log:/home/tapis/service.log
         networks:
             - tokens
+        environment:
+            # an example of the allservices_password, only used in develop. generate a new one with
+            # date +%s | sha256sum | base64 | head -c 32 ; echo or something similar.
+            - allservices_password=ZjM3YzdlYjI3OTYwYzZhN2FhMzcyMGNh
 #        depends_on:
 #            - postgres
 
     tokens-tests:
         image: tapis/tokens-api-tests
+        volumes:
+            - ./config-local.json:/home/tapis/config.json
+        environment:
+            - allservices_password=ZjM3YzdlYjI3OTYwYzZhN2FhMzcyMGNh
