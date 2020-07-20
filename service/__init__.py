@@ -38,3 +38,12 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = conf.sql_db_url
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+
+def create_initial_roles():
+    """
+    Tokens API depends on roles defined in the SK to check authorization
+    """
+    # todo --
+    pass
+
