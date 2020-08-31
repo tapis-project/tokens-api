@@ -120,14 +120,16 @@ class TapisAccessToken(TapisToken):
     delegation_sub = None
 
     # these are the standard Tapis access token claims and cannot appear in the extra_claims parameter -
-    standard_tapis_access_claims = ('jti', 'iss', 'sub', 'tenant', 'username', 'account_type', 'exp')
+    standard_tapis_access_claims = ('jti', 'iss', 'sub', 'tenant', 'target_site', 'username', 'account_type', 'exp')
 
     def __init__(self, jti, iss, sub, tenant_id, username, account_type, ttl, exp, delegation, delegation_sub=None,
-                 extra_claims=None):
+                 target_site_id=None, extra_claims=None):
         super().__init__(jti, iss, sub, 'access', tenant_id, username, account_type, ttl, exp, extra_claims)
-        self.extra_claims = extra_claims
         self.delegation = delegation
         self.delegation_sub = delegation_sub
+        self.target_site_id = target_site_id
+        self.extra_claims = extra_claims
+
 
     def claims_to_dict(self):
         """
@@ -146,9 +148,12 @@ class TapisAccessToken(TapisToken):
             f'{TapisToken.NAMESPACE_PRETEXT}account_type': self.account_type,
             'exp': self.exp,
         }
+        if self.target_site_id:
+            d[f'{TapisToken.NAMESPACE_PRETEXT}target_site'] = self.target_site_id
         if self.extra_claims:
             d.update(self.extra_claims)
         return d
+
 
     @classmethod
     def get_derived_values(cls, data):
@@ -166,6 +171,18 @@ class TapisAccessToken(TapisToken):
         except KeyError as e:
             logger.error(f"Missing required token attribute; KeyError: {e}")
             raise DAOError("Missing required token attribute.")
+
+        # service tokens must also have a target_site claim:
+        if result['account_type'] == 'service':
+            if hasattr(data, 'target_site_id'):
+                result['target_site_id'] = data.target_site_id
+            else:
+                logger.warn(f'service did not provide a target_site_id. setting target_site to {data.token_tenant_id}.'
+                            f'service: {data.token_username}')
+                # TODO -- this should be an error, but for now we default it to the tenant_id because
+                # services have not switched over to using the Sites API yet.
+                # raise DAOError("Missing required target_site_id attribute.")
+                result['target_site_id'] = data.token_tenant_id
 
         # generate a jti
         result['jti'] = str(uuid.uuid4())
@@ -210,7 +227,6 @@ class TapisRefreshToken(TapisToken):
     def __init__(self, jti, iss, sub, tenant_id, username, account_type, ttl, exp, access_token):
         super().__init__(jti, iss, sub, 'refresh', tenant_id, username, account_type, ttl, exp, None)
         self.access_token = access_token
-
 
     @classmethod
     def get_derived_values(cls, data):

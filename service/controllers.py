@@ -32,7 +32,7 @@ class TokensResource(Resource):
         if validated.errors:
             raise errors.ResourceError(msg=f'Invalid POST data: {validated.errors}.')
         validated_body = validated.body
-        # this raises an exception of the claims are invalid -
+        # this raises an exception if the claims are invalid -
         if hasattr(validated_body, 'claims'):
             check_extra_claims(request.json.get('claims'))
             # set it to the raw request's claims object which is an arbitrary python dictionary
@@ -106,9 +106,10 @@ class TokensResource(Resource):
         logger.debug("top of get_refresh_from_access_token_data()")
         logger.debug(f"token_data:{token_data}; access_token: {access_token}")
         # refresh tokens have all the same attributes as the associated access token (and same values)
-        # except that refresh tokens do not have `delegation`, they do have an `access_token` attr, and they
-        # cannot have extra claims:
+        # except that refresh tokens do not have `delegation`, `target_site`, or any extra claims, and they do have
+        # an `access_token` attr:
         token_data.pop('delegation')
+        token_data.pop('target_site_id', None)
         token_data['access_token'] = access_token.claims_to_dict()
         token_data['access_token'].pop('exp')
         token_data.pop('delegation_sub', None)
