@@ -1,6 +1,6 @@
-import tapy
+import tapipy
 import uuid
-from common.auth import get_service_tapy_client, authentication
+from common.auth import get_service_tapis_client, authentication
 from common.config import conf
 from common import errors as common_errors
 from flask import g, request
@@ -26,8 +26,8 @@ token_data = TapisAccessToken.get_derived_values(d)
 jwt = TapisAccessToken(**token_data)
 raw_jwt = jwt.sign_token()
 logger.debug("generated and signed tokens service JWT.")
-t = get_service_tapy_client(jwt=raw_jwt)
-logger.debug("got tapy client for tokens.")
+t = get_service_tapis_client(jwt=raw_jwt)
+logger.debug("got tapipy client for tokens.")
 
 def authn_and_authz():
     """
@@ -144,7 +144,7 @@ def check_service_password(tenant_id, username, password):
                                               tenant=tenant_id,
                                               user=username,
                                               password=password)
-    except tapy.errors.InvalidInputError as e:
+    except tapipy.errors.InvalidInputError as e:
         logger.info(f"Got InvalidInputError trying to check service password inside SK secretMap. Exception: {e}")
         raise common_errors.AuthenticationError(msg='Invalid service account/password combination. Service account may not be registered with SK.')
     except Exception as e:
