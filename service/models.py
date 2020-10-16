@@ -5,7 +5,7 @@ import dateutil.parser
 
 from common.errors import DAOError
 
-from service import tenants
+from service import tenants, errors
 
 # get the logger instance -
 from common.logs import get_logger
@@ -78,7 +78,7 @@ class TapisToken(object):
         :return:
         """
         tenant = tenants.get_tenant_config(self.tenant_id)
-        private_key = tenant['private_key']
+        private_key = tenant.private_key
         self.jwt = jwt.encode(self.claims_to_dict(), private_key, algorithm=self.alg)
         return self.jwt
 
@@ -177,12 +177,7 @@ class TapisAccessToken(TapisToken):
             if hasattr(data, 'target_site_id'):
                 result['target_site_id'] = data.target_site_id
             else:
-                logger.warn(f'service did not provide a target_site_id. setting target_site to {data.token_tenant_id}.'
-                            f'service: {data.token_username}')
-                # TODO -- this should be an error, but for now we default it to the tenant_id because
-                # services have not switched over to using the Sites API yet.
-                # raise DAOError("Missing required target_site_id attribute.")
-                result['target_site_id'] = data.token_tenant_id
+                raise errors.InvalidTokenClaimsError("The target_site_id claim is required for 'service' tokens.")
 
         # generate a jti
         result['jti'] = str(uuid.uuid4())
@@ -191,12 +186,12 @@ class TapisAccessToken(TapisToken):
         result['sub'] = TapisToken.compute_sub(result['tenant_id'], result['username'])
         tenant = tenants.get_tenant_config(result['tenant_id'])
         # derive the issuer from the associated config for the tenant.
-        result['iss'] = tenant['iss']
+        result['iss'] = tenant.token_service
 
         # compute optional fields -
         access_token_ttl = getattr(data, 'access_token_ttl', None)
         if not access_token_ttl or access_token_ttl <= 0:
-            access_token_ttl = tenant['access_token_ttl']
+            access_token_ttl = tenant.access_token_ttl
         result['ttl'] = access_token_ttl
         result['exp'] = TapisToken.compute_exp(access_token_ttl)
 
@@ -235,7 +230,7 @@ class TapisRefreshToken(TapisToken):
         refresh_token_ttl = result.pop('refresh_token_ttl', None)
         if not refresh_token_ttl or refresh_token_ttl <= 0:
             tenant = tenants.get_tenant_config(result['tenant_id'])
-            refresh_token_ttl = tenant['refresh_token_ttl']
+            refresh_token_ttl = tenant.refresh_token_ttl
         result['ttl'] = refresh_token_ttl
         result['exp'] = TapisToken.compute_exp(refresh_token_ttl)
         return result
