@@ -1,4 +1,5 @@
 from common.utils import TapisApi, handle_error, flask_errors_dict
+from common.resources import HelloResource, ReadyResource
 
 from service.auth import authn_and_authz
 from service.controllers import TokensResource
@@ -19,4 +20,9 @@ api.handle_exception = handle_error
 api.handle_user_exception = handle_error
 
 # Add resources
+
+# Health-checks
+api.add_resource(ReadyResource, '/v3/tokens/ready')
+api.add_resource(HelloResource, '/v3/tokens/hello')
+
 api.add_resource(TokensResource, '/v3/tokens')
