@@ -18,14 +18,14 @@ class TokensTenants(Tenants):
         :return:
         """
         if not conf.use_sk:
-            t['private_key'] = conf.dev_jwt_private_key
-            t['access_token_ttl'] = conf.dev_default_access_token_ttl
-            t['refresh_token_ttl'] = conf.dev_default_refresh_token_ttl
+            t.private_key = conf.dev_jwt_private_key
+            t.access_token_ttl = conf.dev_default_access_token_ttl
+            t.refresh_token_ttl = conf.dev_default_refresh_token_ttl
         else:
             # TODO -- get the PK from the security kernel...
-            t['private_key'] = conf.dev_jwt_private_key
-            t['access_token_ttl'] = conf.dev_default_access_token_ttl
-            t['refresh_token_ttl'] = conf.dev_default_refresh_token_ttl
+            t.private_key = conf.dev_jwt_private_key
+            t.access_token_ttl = conf.dev_default_access_token_ttl
+            t.refresh_token_ttl = conf.dev_default_refresh_token_ttl
         return t
 
 
