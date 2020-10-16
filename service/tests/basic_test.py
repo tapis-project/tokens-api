@@ -31,9 +31,10 @@ def test_valid_post(client):
 
     with client:
         payload = {
-            'token_tenant_id': 'master',
-            'account_type': 'service',
-            'token_username': 'tenants',
+            "token_tenant_id": "master",
+            "account_type": "service",
+            "token_username": "tenants",
+            "target_site_id": "master"
         }
 
         response = client.post(
@@ -51,7 +52,8 @@ def test_get_refresh_token(client):
         "token_tenant_id": "master",
         "account_type": "service",
         "token_username": "tenants",
-        "generate_refresh_token": True
+        "generate_refresh_token": True,
+        "target_site_id": "master"
     }
     response = client.post(
         "http://localhost:5000/v3/tokens",
@@ -102,7 +104,8 @@ def test_custom_claims_show_up_in_access_token(client):
         "account_type": "service",
         "token_username": "tenants",
         "generate_refresh_token": True,
-        "claims": {"test_claim": "here it is!"}
+        "claims": {"test_claim": "here it is!"},
+        "target_site_id": "master"
     }
 
     response = client.post(
@@ -130,6 +133,7 @@ def test_custom_ttls(client):
         "generate_refresh_token": True,
         # 90 day refresh token
         "refresh_token_ttl": 7776000,
+        "target_site_id": "master"
     }
     response = client.post(
         "http://localhost:5000/v3/tokens",
@@ -138,8 +142,8 @@ def test_custom_ttls(client):
         headers=get_basic_auth_header()
     )
     assert response.status_code == 200
-    response.json['result']['access_token']['expires_in'] == 14400
-    response.json['result']['refresh_token']['expires_in'] == 7776000
+    assert response.json['result']['access_token']['expires_in'] == 14400
+    assert response.json['result']['refresh_token']['expires_in'] == 7776000
 
     refresh_token = response.json['result']['refresh_token']['refresh_token']
 
@@ -164,6 +168,7 @@ def test_custom_ttls_cannot_be_zero(client):
         "access_token_ttl": 0,
         "generate_refresh_token": True,
         "refresh_token_ttl": 0,
+        "target_site_id": "master"
     }
     response = client.post(
         "http://localhost:5000/v3/tokens",
@@ -189,8 +194,8 @@ def test_custom_ttls_cannot_be_zero(client):
         content_type='application/json'
     )
     assert response2.status_code == 200
-    response2.json['result']['access_token']['expires_in'] == 14400
-    response2.json['result']['refresh_token']['expires_in'] == 7776000
+    assert response2.json['result']['access_token']['expires_in'] == 300
+    assert response2.json['result']['refresh_token']['expires_in'] == 600
 
 def test_custom_claims_show_up_after_refresh(client):
 
@@ -200,7 +205,8 @@ def test_custom_claims_show_up_after_refresh(client):
         "account_type": "service",
         "token_username": "tenants",
         "generate_refresh_token": True,
-        "claims": {"test_claim": "here it is!"}
+        "claims": {"test_claim": "here it is!"},
+        "target_site_id": "master"
     }
 
     response = client.post(
