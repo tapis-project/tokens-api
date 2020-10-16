@@ -20,13 +20,17 @@ SERVICE_TOKEN_TTL = 60*60*24*365*10
 # this is the Tapis client that tokens will use for interacting with other services, such as the security kernel.
 token_tenant = tenants.get_tenant_config(tenant_id=conf.service_tenant_id)
 logger.debug('got token_tenant')
-d = AccessTokenData(jti=uuid.uuid4(), token_tenant_id=conf.service_tenant_id, token_username=conf.service_name, account_type = 'service')
+d = AccessTokenData(jti=uuid.uuid4(),
+                    token_tenant_id=conf.service_tenant_id,
+                    token_username=conf.service_name,
+                    account_type = 'service')
 d.access_token_ttl = SERVICE_TOKEN_TTL
+d.target_site_id = conf.service_site_id
 token_data = TapisAccessToken.get_derived_values(d)
 jwt = TapisAccessToken(**token_data)
 raw_jwt = jwt.sign_token()
 logger.debug("generated and signed tokens service JWT.")
-t = get_service_tapis_client(jwt=raw_jwt)
+t = get_service_tapis_client(jwt=raw_jwt, tenant_id=conf.service_tenant_id, tenants=tenants)
 logger.debug("got tapipy client for tokens.")
 
 def authn_and_authz():
@@ -129,7 +133,7 @@ def check_service_password(tenant_id, username, password):
     #     # secret_name = f'{tenant_id}+allservices+password'
     logger.debug(f"top of check_service_password: tenant_id: {tenant_id}; username: {username}; password: {password}")
     # we only allow use of the "allservices_password" configuration in develop --
-    if conf.use_allservices_password and "develop" in conf.service_tenant_base_url:
+    if conf.use_allservices_password and "develop" in conf.primary_site_master_tenant_base_url:
         logger.info("allowing check of the allservices_password")
         if conf.allservices_password and conf.allservices_password == password:
             logger.info("allservices_password was correct; issuing token.")
