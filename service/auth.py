@@ -17,21 +17,55 @@ logger.debug("top of auth.py")
 # 10 years TTL
 SERVICE_TOKEN_TTL = 60*60*24*365*10
 
-# this is the Tapis client that tokens will use for interacting with other services, such as the security kernel.
-token_tenant = tenants.get_tenant_config(tenant_id=conf.service_tenant_id)
-logger.debug('got token_tenant')
-d = AccessTokenData(jti=uuid.uuid4(),
-                    token_tenant_id=conf.service_tenant_id,
-                    token_username=conf.service_name,
-                    account_type = 'service')
-d.access_token_ttl = SERVICE_TOKEN_TTL
-d.target_site_id = conf.service_site_id
-token_data = TapisAccessToken.get_derived_values(d)
-jwt = TapisAccessToken(**token_data)
-raw_jwt = jwt.sign_token()
-logger.debug("generated and signed tokens service JWT.")
-t = get_service_tapis_client(jwt=raw_jwt, tenant_id=conf.service_tenant_id, tenants=tenants)
+
+def get_tokens_tapis_client():
+    """
+    Instantiates and returns a tapis client for the Tokens service by generating the service tokens
+    using the private key associated with the master tenant.
+    """
+    # start with a service client using the convenience function from the common package.
+    # we put a 'dummy' jwt here to tell it to skip token generation, since we need to
+    # generate our own tokens:
+    t = get_service_tapis_client(jwt="dummy",
+                                 tenant_id=conf.service_tenant_id,
+                                 tenants=tenants)
+    # generate our own service tokens ---
+    # minimal data needed to create an access token:
+    base_token_data = AccessTokenData(jti=uuid.uuid4(),
+                                      token_tenant_id=conf.service_tenant_id,
+                                      token_username=conf.service_name,
+                                      account_type='service')
+    # override some defaults --
+    base_token_data.access_token_ttl = SERVICE_TOKEN_TTL
+    # set up the service tokens object: dictionary mapping of tenant_id to token data for all
+    # tenants the Tokens API will need to interact with.
+    service_tokens = {t: {} for t in tenants.get_site_master_tenants_for_service()}
+    for tenant_id in service_tokens.keys():
+        try:
+            target_site_id = tenants.get_tenant_config(tenant_id=tenant_id).site_id
+        except Exception as e:
+            raise common_errors.BaseTapyException(f"Got exception computing target site id; e:{e}")
+        base_token_data.target_site_id = target_site_id
+        token_data = TapisAccessToken.get_derived_values(base_token_data)
+        access_token = TapisAccessToken(**token_data)
+        access_token.sign_token()
+        # create the "access_token" attribute pointing to the raw JWT just as tapipy does
+        # in its get_tokens() methods
+        access_token.access_token = access_token.jwt
+        service_tokens[tenant_id]['access_token'] = access_token
+
+    # attach our service_tokens to the client and return --
+    t.service_tokens = service_tokens
+    return t
+
+
+# the tapis client used by the tokens API --
+t = get_tokens_tapis_client()
 logger.debug("got tapipy client for tokens.")
+
+
+# Authentication and Authorization
+# --------------------------------
 
 def authn_and_authz():
     """
