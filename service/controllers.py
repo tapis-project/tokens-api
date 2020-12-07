@@ -41,8 +41,7 @@ class TokensResource(Resource):
         token_data = TapisAccessToken.get_derived_values(validated_body)
         access_token = TapisAccessToken(**token_data)
         access_token.sign_token()
-        result = {}
-        result['access_token'] = access_token.serialize
+        result = {'access_token': access_token.serialize}
 
         # refresh token --
         if hasattr(validated_body, 'generate_refresh_token') and validated_body.generate_refresh_token:

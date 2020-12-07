@@ -21,7 +21,7 @@ SERVICE_TOKEN_TTL = 60*60*24*365*10
 def get_tokens_tapis_client():
     """
     Instantiates and returns a tapis client for the Tokens service by generating the service tokens
-    using the private key associated with the master tenant.
+    using the private key associated with the admin tenant.
     """
     # start with a service client using the convenience function from the common package.
     # we put a 'dummy' jwt here to tell it to skip token generation, since we need to
@@ -39,7 +39,7 @@ def get_tokens_tapis_client():
     base_token_data.access_token_ttl = SERVICE_TOKEN_TTL
     # set up the service tokens object: dictionary mapping of tenant_id to token data for all
     # tenants the Tokens API will need to interact with.
-    service_tokens = {t: {} for t in tenants.get_site_master_tenants_for_service()}
+    service_tokens = {t: {} for t in tenants.get_site_admin_tenants_for_service()}
     for tenant_id in service_tokens.keys():
         try:
             target_site_id = tenants.get_tenant_config(tenant_id=tenant_id).site_id
@@ -120,7 +120,7 @@ def authn_and_authz():
                     raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?')
                 role_name = f'{tenant_id}_token_generator'
                 try:
-                    users = t.sk.getUsersWithRole(tenant='master', roleName=role_name)
+                    users = t.sk.getUsersWithRole(tenant='admin', roleName=role_name)
                 except Exception as e:
                     msg = f'Got an error calling the SK to get users with role {role_name}. Exception: {e}'
                     logger.error(msg)
@@ -167,7 +167,7 @@ def check_service_password(tenant_id, username, password):
     #     # secret_name = f'{tenant_id}+allservices+password'
     logger.debug(f"top of check_service_password: tenant_id: {tenant_id}; username: {username}; password: {password}")
     # we only allow use of the "allservices_password" configuration in develop --
-    if conf.use_allservices_password and "develop" in conf.primary_site_master_tenant_base_url:
+    if conf.use_allservices_password and "develop" in conf.primary_site_admin_tenant_base_url:
         logger.info("allowing check of the allservices_password")
         if conf.allservices_password and conf.allservices_password == password:
             logger.info("allservices_password was correct; issuing token.")

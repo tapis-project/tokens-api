@@ -1,7 +1,7 @@
 {
   "service_name": "tokens",
   "use_sk": false,
-  "tenants": ["dev", "master"],
+  "tenants": ["dev", "admin"],
   "log_level": "DEBUG",
   "use_allservices_password": true
 }

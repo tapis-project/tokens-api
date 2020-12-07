@@ -24,17 +24,17 @@ def test_invalid_post(client):
 def get_basic_auth_header():
     user_pass = bytes(f"tenants:{conf.allservices_password}", 'utf-8')
     return {'Authorization': 'Basic {}'.format(b64encode(user_pass).decode()),
-            'X-Tapis-Tenant': 'master'}
+            'X-Tapis-Tenant': 'admin'}
 
 
 def test_valid_post(client):
 
     with client:
         payload = {
-            "token_tenant_id": "master",
+            "token_tenant_id": "admin",
             "account_type": "service",
             "token_username": "tenants",
-            "target_site_id": "master"
+            "target_site_id": "admin"
         }
 
         response = client.post(
@@ -49,11 +49,11 @@ def test_valid_post(client):
 
 def test_get_refresh_token(client):
     payload = {
-        "token_tenant_id": "master",
+        "token_tenant_id": "admin",
         "account_type": "service",
         "token_username": "tenants",
         "generate_refresh_token": True,
-        "target_site_id": "master"
+        "target_site_id": "admin"
     }
     response = client.post(
         "http://localhost:5000/v3/tokens",
@@ -67,7 +67,7 @@ def test_get_refresh_token(client):
     jti = response.json['result']['access_token']['jti']
 
     payload2 = {
-        "tenant_id": "master",
+        "tenant_id": "admin",
         "refresh_token": refresh_token
     }
 
@@ -100,12 +100,12 @@ def test_bad_refresh_token_gives_correct_error(client):
 
 def test_custom_claims_show_up_in_access_token(client):
     payload = {
-        "token_tenant_id": "master",
+        "token_tenant_id": "admin",
         "account_type": "service",
         "token_username": "tenants",
         "generate_refresh_token": True,
         "claims": {"test_claim": "here it is!"},
-        "target_site_id": "master"
+        "target_site_id": "admin"
     }
 
     response = client.post(
@@ -125,7 +125,7 @@ def test_custom_claims_show_up_in_access_token(client):
 
 def test_custom_ttls(client):
     payload = {
-        "token_tenant_id": "master",
+        "token_tenant_id": "admin",
         "account_type": "service",
         "token_username": "tenants",
         # 4 hour access token
@@ -133,7 +133,7 @@ def test_custom_ttls(client):
         "generate_refresh_token": True,
         # 90 day refresh token
         "refresh_token_ttl": 7776000,
-        "target_site_id": "master"
+        "target_site_id": "admin"
     }
     response = client.post(
         "http://localhost:5000/v3/tokens",
@@ -162,13 +162,13 @@ def test_custom_ttls(client):
 
 def test_custom_ttls_cannot_be_zero(client):
     payload = {
-        "token_tenant_id": "master",
+        "token_tenant_id": "admin",
         "account_type": "service",
         "token_username": "tenants",
         "access_token_ttl": 0,
         "generate_refresh_token": True,
         "refresh_token_ttl": 0,
-        "target_site_id": "master"
+        "target_site_id": "admin"
     }
     response = client.post(
         "http://localhost:5000/v3/tokens",
@@ -201,12 +201,12 @@ def test_custom_claims_show_up_after_refresh(client):
 
     # First, get an access token
     payload = {
-        "token_tenant_id": "master",
+        "token_tenant_id": "admin",
         "account_type": "service",
         "token_username": "tenants",
         "generate_refresh_token": True,
         "claims": {"test_claim": "here it is!"},
-        "target_site_id": "master"
+        "target_site_id": "admin"
     }
 
     response = client.post(
