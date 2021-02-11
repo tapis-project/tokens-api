@@ -112,23 +112,35 @@ def authn_and_authz():
                 logger.debug("did not get parts, checking for tapis token..")
                 authentication()
                 # now, check with SK that service is authorized for the action. Token generation is controlled by a
-                # specific role corresponding to the tenant
+                # specific role corresponding to the tenant that the caller is trying to create the token in.
                 try:
                     tenant_id = request.get_json().get('token_tenant_id')
                 except Exception as e:
                     logger.info(f"Got exception trying to parse JSON from Tapis token request; e: {e}; type(e):{type(e)}")
                     raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?')
+                # the role_name includes the tenant that the caller is trying to create the token in.
                 role_name = f'{tenant_id}_token_generator'
                 try:
-                    users = t.sk.getUsersWithRole(tenant='admin', roleName=role_name)
+                    # the role itself lives in the admin tenant for the site where tokens lives. the caller (which
+                    # should be a service account),
+                    try:
+                        admin_tenant = g.tenant_id
+                    except Exception as e:
+                        msg = f"got exception trying to check the service token's tenant_id; exception: {e}."
+                        logger.error(msg)
+                        raise common_errors.AuthenticationError("Unable to validate the tenant_id on the provided JWT.")
+                    logger.debug(f"calling SK to check for role: {role_name} in tenant: {admin_tenant}...")
+                    users = t.sk.getUsersWithRole(tenant=admin_tenant, roleName=role_name)
                 except Exception as e:
                     msg = f'Got an error calling the SK to get users with role {role_name}. Exception: {e}'
                     logger.error(msg)
                     raise common_errors.PermissionsError(
                         msg=f'Could not verify permissions with the Security Kernel; additional info: {e}')
                 if g.username not in users.names:
-                    logger.info(f"user {g.username} was not in role {role_name}. raising permissions error.")
+                    logger.info(f"user {g.username} was not in role {role_name} in tenant {admin_tenant}. "
+                                f"DENYING request and raising permissions error.")
                     raise common_errors.PermissionsError(msg=f'Not authorized to generate tokens in tenant {tenant_id}.')
+                logger.debug(f"user {g.username} WAS fond in role {role_name} in tenant {admin_tenant}. APPROVING request.")
                 return True
 
 
