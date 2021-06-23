@@ -2,7 +2,7 @@ from common.utils import TapisApi, handle_error, flask_errors_dict
 from common.resources import HelloResource, ReadyResource
 
 from service.auth import authn_and_authz
-from service.controllers import TokensResource
+from service.controllers import TokensResource, SigningKeysResource
 
 from service import app, db
 
@@ -26,3 +26,4 @@ api.add_resource(ReadyResource, '/v3/tokens/ready')
 api.add_resource(HelloResource, '/v3/tokens/hello')
 
 api.add_resource(TokensResource, '/v3/tokens')
+api.add_resource(SigningKeysResource, '/v3/tokens/keys')

@@ -23,7 +23,7 @@ class TokensTenants(Tenants):
             t.refresh_token_ttl = conf.dev_default_refresh_token_ttl
         else:
             # TODO -- get the PK from the security kernel...
-            t.private_key = conf.dev_jwt_private_key
+            t.private_key = self.get_tenant_signing_key_from_sk(t.tenant_id)
             t.access_token_ttl = conf.dev_default_access_token_ttl
             t.refresh_token_ttl = conf.dev_default_refresh_token_ttl
         return t

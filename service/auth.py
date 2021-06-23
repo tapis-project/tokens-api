@@ -17,6 +17,9 @@ logger.debug("top of auth.py")
 # 10 years TTL
 SERVICE_TOKEN_TTL = 60*60*24*365*10
 
+# this role is stored in the security kernel
+ROLE = 'tenant_definition_updater'
+
 
 def get_tokens_tapis_client():
     """
@@ -59,9 +62,43 @@ def get_tokens_tapis_client():
     return t
 
 
+def get_tenant_signing_keys_from_sk(tenant_id):
+    """
+    Retrieve the signing key for a tenant from the SK. This is used at service start up
+    """
+    logger.debug(f"top of get_tenant_signing_key_from_sk for tenant_id: {tenant_id}")
+    try:
+        result = t.sk.readSecret(secretType='jwtsigning',
+                                 secretName='keys',
+                                 tenant=tenant_id,
+                                 user='tokens')
+    except Exception as e:
+        logger.error(f"Error from SK trying to read tenant signing key for tenant {tenant_id}; exception: {e}")
+        raise e
+    logger.debug(f"returning signing key for tenant_id: {tenant_id}")
+    return result.secretMap.privateKey, result.secretMap.publicKey
+
+
+def get_signing_keys_for_all_tenants_from_sk():
+    """
+    Retrieve all signing keys for all tenants served by this Tokens API.
+    This function is called at service start up.
+    """
+    logger.debug('top of get_signing_keys_for_all_tenants_from_sk; retrieving tenant signing keys...')
+    for tenant in tenants.tenants:
+        # need to check if this is a tenant this Tokens API serves:
+        if not tenant.site_id == conf.service_site_id:
+            logger.debug(f"skipping tenant_id {tenant.tenant_id} as it is owned by site {tenant.site_id} and this tokens"
+                         f"API is serving site {conf.service_site_id}.")
+        logger.debug(f"retrieving signing key for tenant {tenant.tenant_id}")
+        tenant.private_key, _ = get_tenant_signing_keys_from_sk(tenant.tenant_id)
+
+
 # the tapis client used by the tokens API --
 t = get_tokens_tapis_client()
 logger.debug("got tapipy client for tokens.")
+# use tapipy client to get the signing keys from the SK at start up...
+get_signing_keys_for_all_tenants_from_sk()
 
 
 # Authentication and Authorization
@@ -87,6 +124,31 @@ def authn_and_authz():
             "Invalid request: the API endpoint does not exist or the provided HTTP method is not allowed.", 405)
     # if we are using the SK, we require basic auth on generating tokens (access or refresh).
     if conf.use_sk:
+        # first check if this is a request to update the token signing keys
+        if 'tokens/keys' in request.url_rule.rule:
+            # check for a Tapis token
+            logger.debug("request to update token signing keys, looking for a tapis token..")
+            authentication()
+            # updating the token signing keys requires a special role, stored in SK. note that we are using the
+            # tenant_id associated with the access token (g.tenant_id) in the check here, because the token could be
+            # a user token or it could be a service token. in either case, the user must have the tenant updater role.
+            # later, we also check that the tenant_id in the payload either matches g.tenant_id or that it is the
+            # admin tenant for the site owning the tenant in the payload. (see check_authz_private_keypair() below)
+            try:
+                users = t.sk.getUsersWithRole(roleName=ROLE, tenant=g.tenant_id)
+            except Exception as e:
+                msg = f'Got an error calling the SK. Exception: {e}'
+                logger.error(msg)
+                raise common_errors.PermissionsError(
+                    msg=f'Could not verify permissions with the Security Kernel; additional info: {e}')
+            logger.debug(f"got users: {users}; checking if {g.username} is in role {ROLE}.")
+            if g.username not in users.names:
+                logger.info(f"user {g.username} was not in role {ROLE}. raising permissions error.")
+                raise common_errors.PermissionsError(msg='Not authorized to modify the tenant gining keys.')
+            return True
+
+        # otherwise, this is a request to create a token (either with a service account/password (POST) or with a
+        # refresh token (PUT).
         if request.method == 'POST': # note: PUT (i.e. refresh) does NOT require additional auth
             # check for basic auth header:
             parts = get_basic_auth_parts()
@@ -228,3 +290,72 @@ def check_extra_claims(extra_claims):
         # TODO - implement auth via SK
         pass
         # raise NotImplementedError("The security kernel is not available.")
+
+
+def check_authz_private_keypair(tenant_id):
+    """
+    Makes the following set of additional authorization checks:
+      1). the tenant_id must be owned by the site where this Tokens API is running.
+    and one of the following are true:
+      2). the token's tenant_id claim matches the tenant_id being updated. OR
+      3). the token's tenant_id claim is for the admin tenant for the site owning the tenant_id being updated.
+    """
+    # first check if the tenant_id is a tenant that this Tokens API handles
+    logger.debug(f"top of check_authz_private_keypair for: {tenant_id}")
+    request_tenant = t.tenants.get_tenant_config(tenant_id=tenant_id)
+    site_id_for_request = request_tenant.site_id
+    logger.debug(f"request_tenant: {request_tenant}; site_id_for_request: {site_id_for_request}")
+    if not conf.service_site_id == site_id_for_request:
+        logger.info(f"the request was for a site {site_id_for_request} that does not match the site for this Tokens"
+                    f"API ({conf.service_site_id}. the request is not authorized.")
+        raise common_errors.AuthenticationError(msg=f'Invalid tenant_id ({tenant_id}) provided. This tenant belongs to'
+                                                    f'site {site_id_for_request} but this Tokens API serves site'
+                                                    f'{conf.service_site_id}.')
+    # if the tenant_id of the access token matched the tenant_id the request is trying to update, the request is
+    # authorized
+    if g.tenant_id == tenant_id:
+        logger.debug(f"token's tenant {g.tenant_id} matched. request authorized.")
+        return True
+    # the rest of the checks are only for service tokens; if token was a user token, the request is not authorized:
+    if not g.account_type == 'service':
+        logger.info(f"the request was for a different tenant {tenant_id} than the token's tenant_id ({g.tenant_id}) and"
+                    f"the token was not s service token. the request is not authorized.")
+        raise common_errors.AuthenticationError(msg=f'Invalid tenant_id ({tenant_id}) provided. The token provided '
+                                                    f'belongs to the {g.tenant_id} tenant but the request is trying to'
+                                                    f'update the {tenant_id} tenant. Only service accounts can update'
+                                                    f'other tenants.')
+    # if the token tenant_id did not match the tenant_id in the request, the only way the request will be authorized is
+    # if the token tenant_id is for the admin tenant of the owning site (which is the site of this Tokens API).
+    # to check this, get the site associated with the token:
+    token_tenant = t.tenants.get_tenant_config(tenant_id=g.tenant_id)
+    site_id_for_token = token_tenant.site_id
+    logger.debug(f"site_id_for_token: {site_id_for_token}")
+    if site_id_for_request == site_id_for_token:
+        logger.debug(f"token's site {site_id_for_token} matched tenant's site. request authorized.")
+        return True
+    logger.info(f"token site {site_id_for_token} did NOT match tenant's site ({site_id_for_request})")
+    raise common_errors.AuthenticationError(msg=f'Invalid tenant_id ({tenant_id}) provided. This tenant belongs to'
+                                                f'site {site_id_for_request} but the Tapis token passed in the'
+                                                f'X-Tapis-Token header is for site {site_id_for_token}. Services'
+                                                f'can only update tenants at their site.')
+
+
+def generate_private_keypair_in_sk(tenant_id):
+    """
+    Generate a public/private key pair using SK for tenant_id. Returns the private key and the
+    public key.
+    """
+    try:
+        # note: writeSecret does not return the signing key generated; for that we have to
+        # call readSecret
+        t.sk.writeSecret(secretType='jwtsigning',
+                         secretName='keys',
+                         tenant=tenant_id,
+                         user='tokens',
+                         # these static data values instruct the SK to generate the key pair for us ---
+                        data={'key': 'privateKey',
+                              'value': '<generate-secret>'}
+                         )
+    except Exception as e:
+        logger.error(f"Error from SK trying to generate key pair; exception: {e}")
+    return get_tenant_signing_keys_from_sk(tenant_id)

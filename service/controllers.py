@@ -11,9 +11,9 @@ from openapi_core.wrappers.flask import FlaskOpenAPIRequest
 from common.config import conf
 from common import auth, utils, errors
 
-from service.auth import check_extra_claims
+from service.auth import check_extra_claims, check_authz_private_keypair, generate_private_keypair_in_sk, t
 from service.models import TapisAccessToken, TapisRefreshToken
-from service import db
+from service import tenants
 
 
 # get the logger instance -
@@ -121,3 +121,36 @@ class TokensResource(Resource):
         refresh_token = TapisRefreshToken(**refresh_token_data)
         refresh_token.sign_token()
         return refresh_token
+
+
+class SigningKeysResource(Resource):
+    """
+    Generate a new public/private key pair for token signatures.
+    """
+
+    def put(self):
+        logger.debug("top of  PUT /tokens/keys")
+        validator = RequestValidator(utils.spec)
+        validated = validator.validate(FlaskOpenAPIRequest(request))
+        if validated.errors:
+            raise errors.ResourceError(msg=f'Invalid PUT data: {validated.errors}.')
+        tenant_id = validated.body.tenant_id
+        logger.debug(f"calling check_authz_private_keypair with tenant_id {tenant_id}")
+        check_authz_private_keypair(tenant_id)
+        logger.debug("returned from check_authz_private_keypair; updating keys...")
+        private_key, public_key = generate_private_keypair_in_sk(tenant_id)
+        # update the tenant definition with the new public key
+        try:
+            t.tenants.update_tenant(tenant_id=tenant_id, public_key=public_key)
+        except Exception as e:
+            logger.error(f"Got exception trying to update tenant with new public key. Tenants API"
+                         f"and SK are now out of sync!! SHOULD BE LOOKED AT IMMEDIATELY. "
+                         f"Exception: {e}")
+            raise errors.ResourceError(msg=f'Unable to update tenant definition with new public key'
+                                           f'Please contact system administrators.')
+        # update token's tenant cache with this private key for signing:
+        for tenant in tenants.tenant:
+            if tenant.tenant_id == tenant_id:
+                tenant.private_key = private_key
+
+
