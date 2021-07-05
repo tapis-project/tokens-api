@@ -62,23 +62,6 @@ def get_tokens_tapis_client():
     return t
 
 
-def get_tenant_signing_keys_from_sk(tenant_id):
-    """
-    Retrieve the signing key for a tenant from the SK. This is used at service start up
-    """
-    logger.debug(f"top of get_tenant_signing_key_from_sk for tenant_id: {tenant_id}")
-    try:
-        result = t.sk.readSecret(secretType='jwtsigning',
-                                 secretName='keys',
-                                 tenant=tenant_id,
-                                 user='tokens')
-    except Exception as e:
-        logger.error(f"Error from SK trying to read tenant signing key for tenant {tenant_id}; exception: {e}")
-        raise e
-    logger.debug(f"returning signing key for tenant_id: {tenant_id}")
-    return result.secretMap.privateKey, result.secretMap.publicKey
-
-
 def get_signing_keys_for_all_tenants_from_sk():
     """
     Retrieve all signing keys for all tenants served by this Tokens API.
@@ -91,14 +74,15 @@ def get_signing_keys_for_all_tenants_from_sk():
             logger.debug(f"skipping tenant_id {tenant.tenant_id} as it is owned by site {tenant.site_id} and this tokens"
                          f"API is serving site {conf.service_site_id}.")
         logger.debug(f"retrieving signing key for tenant {tenant.tenant_id}")
-        tenant.private_key, _ = get_tenant_signing_keys_from_sk(tenant.tenant_id)
+        tenant.private_key, _ = tenants.get_tenant_signing_keys_from_sk(t, tenant.tenant_id)
 
 
 # the tapis client used by the tokens API --
 t = get_tokens_tapis_client()
 logger.debug("got tapipy client for tokens.")
 # use tapipy client to get the signing keys from the SK at start up...
-get_signing_keys_for_all_tenants_from_sk()
+if conf.use_sk:
+    get_signing_keys_for_all_tenants_from_sk()
 
 
 # Authentication and Authorization
@@ -353,9 +337,9 @@ def generate_private_keypair_in_sk(tenant_id):
                          tenant=tenant_id,
                          user='tokens',
                          # these static data values instruct the SK to generate the key pair for us ---
-                        data={'key': 'privateKey',
-                              'value': '<generate-secret>'}
+                         data={'key': 'privateKey',
+                               'value': '<generate-secret>'}
                          )
     except Exception as e:
         logger.error(f"Error from SK trying to generate key pair; exception: {e}")
-    return get_tenant_signing_keys_from_sk(tenant_id)
+    return tenants.get_tenant_signing_keys_from_sk(t, tenant_id)
