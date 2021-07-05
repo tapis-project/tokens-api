@@ -1,0 +1,19 @@
+# Image: tapis/keys-mgt
+from tapis/tokens-api
+
+WORKDIR /home/tapis
+USER root
+# install the needed tenants API code
+RUN git clone https://github.com/tapis-project/tenants-api.git /home/tapis/tenantsService
+
+COPY keysmgt /home/tapis/keymgtService/keysmgt
+
+COPY keysmgt/config-local.json /home/tapis/config.json
+COPY keysmgt/entry.sh /home/tapis/entry.sh
+RUN chmod +x /home/tapis/entry.sh
+
+WORKDIR /home/tapis
+RUN chown -R tapis:tapis /home/tapis
+ENTRYPOINT ["./entry.sh"]
+
+USER tapis

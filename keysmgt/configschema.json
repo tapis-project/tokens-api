@@ -1,0 +1,45 @@
+{
+  "$id": "http://github.com/tapis-project/tokens-api/tokens-api/keysmgt/configschema.json",
+  "$schema": "http://json-schema.org/schema#",
+  "properties": {
+    "site_id": {
+      "type": "string",
+      "description": "The id of the site where this keys manager is running."
+    },
+    "running_at_primary_site": {
+      "type": "boolean",
+      "description": "Whether this keys manager is running at the primary site."
+    },
+    "sql_db_url": {
+      "type": "string",
+      "description": "full URL, including protocol and database, to the SQL db. Required when running_at_primary_site=True",
+      "default": "postgres://tenants:d3fd6pAssw0rd@postgres:5432/tenants"
+    },
+    "postgres_user": {
+      "type": "string",
+      "description": "user for the SQL db. Required when running_at_primary_site=True",
+      "default": "tenants"
+    },
+    "postgres_password": {
+      "type": "string",
+      "description": "password to the SQL db. Required when running_at_primary_site=True",
+      "default": "d3fd6pAssw0rd"
+    },
+    "update_associate_site": {
+      "type": "boolean",
+      "description": "Only applicable when running_at_primary_site is true; Whether this keys manager should run in update_associate_site mode to update the keys for an associate site. Required when running_at_primary_site=True"
+    },
+    "associate_site_id": {
+      "type": "string",
+      "description": "Only applicable when running_at_primary_site is true; The id of the associate site for which this keys manager should update the public keys. Required when running_at_primary_site=True and update_associate_site=True"
+    },
+    "tenants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "The list of tenants that this keys manager should manage."
+    }
+  },
+  "required": ["site_id", "running_at_primary_site","tenants"]
+}

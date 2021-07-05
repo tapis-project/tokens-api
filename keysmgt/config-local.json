@@ -1,0 +1,12 @@
+{
+  "use_sk": false,
+  "service_name": "tokens",
+  "service_password": "abcd123",
+  "site_id": "tacc",
+  "running_at_primary_site": true,
+  "tenants": ["dev"],
+  "sql_db_url": "postgres:5432/tenants",
+  "postgres_user": "tenants",
+  "postgres_password": "d3fd6pAssw0rd",
+  "update_associate_site": false
+}
