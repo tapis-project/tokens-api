@@ -17,7 +17,7 @@ from common import errors
 
 # whether to actually update the SK and/or Tenants API with changes.
 # toggle this on or off for testing
-ACTUALLY_RUN_UPDATES = False
+ACTUALLY_RUN_UPDATES = os.environ.get('ACTUALLY_RUN_UPDATES', False)
 
 # add packages to the path carefully -- each of the API packages (tokens, tenants) was originally called "service" so
 # there can be some issues with imports if the path isn't correct
