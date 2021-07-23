@@ -223,7 +223,7 @@ def check_service_password(tenant_id, username, password):
     # if conf.use_allservices_password:
     #     secret_name = 'password'
     #     # secret_name = f'{tenant_id}+allservices+password'
-    logger.debug(f"top of check_service_password: tenant_id: {tenant_id}; username: {username}; password: {password}")
+    logger.debug(f"top of check_service_password: tenant_id: {tenant_id}; username: {username}")
     # we only allow use of the "allservices_password" configuration in develop --
     if conf.use_allservices_password and "develop" in conf.primary_site_admin_tenant_base_url:
         logger.info("allowing check of the allservices_password")
