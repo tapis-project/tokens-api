@@ -81,28 +81,6 @@ def update_tenant_pub_key(tenant_id, pub_key):
         raise e
     print(f"public key updated for tenant {tenant_id}.")
     return None
-    # tenant = Tenant.query.filter_by(tenant_id=tenant_id).first()
-    # update_time = datetime.datetime.utcnow()
-    # updated_by = 'tokens@admin'
-    # prev_public_key = tenant.public_key
-    # tenant.public_key = pub_key
-    # tenant.last_update_time = update_time
-    # tenant.last_updated_by = updated_by
-    # changes_dict = {'public_key': { 'prev': prev_public_key,
-    #                                 'new': pub_key }
-    #                 }
-    # tenant_history = TenantHistory(tenant_id=tenant.tenant_id,
-    #                                update_time=update_time,
-    #                                updated_by=updated_by,
-    #                                updates_as_json=json.dumps(changes_dict)
-    # )
-    # db.session.add(tenant_history)
-    # try:
-    #     db.session.commit()
-    # except Exception as e:
-    #     print(f"got exception trying to commit db update for tenant {tenant_id}; e: {e}")
-    #     raise e
-
 
 def create_keys_for_primary_site():
     """
@@ -165,14 +143,6 @@ def validate_config():
 
     if conf.running_at_primary_site:
         # first check for all required configs:
-
-        # commenting these because we are now trying to go through tenants api ---
-        # if not hasattr(conf, 'sql_db_url'):
-        #     raise errors.ServiceConfigError("running_at_primary_site was 'true' so sql_db_url config required.")
-        # if not hasattr(conf, 'postgres_user'):
-        #     raise errors.ServiceConfigError("running_at_primary_site was 'true' so postgres_user config required.")
-        # if not hasattr(conf, 'postgres_password'):
-        #     raise errors.ServiceConfigError("running_at_primary_site was 'true' so postgres_password config required.")
         if not hasattr(conf, 'update_associate_site'):
             raise errors.ServiceConfigError("running_at_primary_site was 'true' so update_associate_site (t/f) config "
                                             "required.")
