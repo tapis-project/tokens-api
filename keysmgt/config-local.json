@@ -1,12 +1,10 @@
 {
   "use_sk": false,
   "service_name": "tokens",
-  "service_password": "abcd123",
+  "dev_jwt_private_key": "<update me>",
   "site_id": "tacc",
+  "service_tenant_id": "admin",
   "running_at_primary_site": true,
-  "tenants": ["dev"],
-  "sql_db_url": "postgres:5432/tenants",
-  "postgres_user": "tenants",
-  "postgres_password": "d3fd6pAssw0rd",
+  "tenants": ["admin", "dev", "tacc", "cii", "a2cps"],
   "update_associate_site": false
 }

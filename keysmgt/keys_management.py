@@ -2,9 +2,9 @@
 Command line utility for managing public/private key pairs assigned to tenants for signing JWTs.
 Use the service config, in accordance with the configschema.json, to configure aspects of the program.
 
-Note that this service must run as the Tokens API, with the tokens service_name and service_password, so that it
-can generate a JWT for the Tokens service and interact with the SK as such. Therefore, this program uses the tokens-api
-base image
+Note that this service must run as the Tokens API, with the tokens service_name, and the dev_jwt_private_key must
+be provided so that it can generate a JWT for the Tokens service and interact with the SK as such. Therefore, this
+program uses the tokens-api base image
 
 
 """
@@ -39,6 +39,7 @@ def update_associate_site_pub_keys():
     Updates the public keys defined in the Tenants API for an associate site. This function should
     only execute on the primary site, i.e., when conf.running_at_primary_site is true.
     """
+    print("Top of update_associate_site_pub_keys")
     for tn in conf.tenants:
         pub_key_path = os.path.join(DATA_DIR, tn, 'pub.key')
         # read public key from the file and update it in the tenants db:
@@ -51,6 +52,7 @@ def create_keys_for_tenant(tenant_id):
     """
     Calls the SK to generate a new public/private key pair for a given tenant id
     """
+    print(f"Top of create_keys_for_tenant for tenant: {tenant_id}")
     try:
         priv_key, pub_key = generate_private_keypair_in_sk(tenant_id)
     except Exception as e:
@@ -71,6 +73,7 @@ def update_tenant_pub_key(tenant_id, pub_key):
     This function updates the public key to `pub_key` associated with tenant with id `tenant_id`.
     It makes the update directly in the Tenants model.
     """
+    print(f"top of update_tenant_pub_key for tenant: {tenant_id}")
     try:
         t.tenants.update_tenant(tenant_id=tenant_id, public_key=pub_key)
     except Exception as e:
@@ -107,6 +110,7 @@ def create_keys_for_primary_site():
     API. This function should only execute on the primary site, i.e., when conf.running_at_primary_site
     is true.
     """
+    print("top of create_keys_for_primary_site")
     # first, create a public/private key pair for each tenant
     for tn in conf.tenants:
         priv_key, pub_key = create_keys_for_tenant(tn)
@@ -119,6 +123,7 @@ def create_keys_for_associate_site():
     Update the public/private keys at an associate site. This function runs at an associate site and does
     not update the associate public keys with the Tenants API.
     """
+    print("top of create_keys_for_associate_site")
     for tn in conf.tenants:
         priv_key, pub_key = create_keys_for_tenant(tn)
         pub_key_path = os.path.join(DATA_DIR, tn, 'pub.key')
@@ -131,6 +136,7 @@ def validate_config():
     """
     Validates the config provided in the config.json file.
     """
+    print(f"top of validate_config; found this config: {conf}")
     # we must be running as the Tokens API or this is not going to work.
     if not conf.service_name == 'tokens':
         raise errors.ServiceConfigError(f"Invalid config: conf.service_name must be 'tokens' not {conf.service_name}."
@@ -159,12 +165,14 @@ def validate_config():
 
     if conf.running_at_primary_site:
         # first check for all required configs:
-        if not hasattr(conf, 'sql_db_url'):
-            raise errors.ServiceConfigError("running_at_primary_site was 'true' so sql_db_url config required.")
-        if not hasattr(conf, 'postgres_user'):
-            raise errors.ServiceConfigError("running_at_primary_site was 'true' so postgres_user config required.")
-        if not hasattr(conf, 'postgres_password'):
-            raise errors.ServiceConfigError("running_at_primary_site was 'true' so postgres_password config required.")
+
+        # commenting these because we are now trying to go through tenants api ---
+        # if not hasattr(conf, 'sql_db_url'):
+        #     raise errors.ServiceConfigError("running_at_primary_site was 'true' so sql_db_url config required.")
+        # if not hasattr(conf, 'postgres_user'):
+        #     raise errors.ServiceConfigError("running_at_primary_site was 'true' so postgres_user config required.")
+        # if not hasattr(conf, 'postgres_password'):
+        #     raise errors.ServiceConfigError("running_at_primary_site was 'true' so postgres_password config required.")
         if not hasattr(conf, 'update_associate_site'):
             raise errors.ServiceConfigError("running_at_primary_site was 'true' so update_associate_site (t/f) config "
                                             "required.")
@@ -185,11 +193,24 @@ def validate_config():
                     raise errors.ServiceConfigError(f"Did not find public key for tenant {tn}"
                                                     f"Expected a public key file at {pub_key_path}.")
 
+    # check that we can talk to the sk and that the tokens user has the tenant_definition_updater role
+    try:
+        has_role = t.sk.hasRole(roleName='tenant_definition_updater', user='tokens', tenant=conf.service_tenant_id)
+    except Exception as e:
+        raise errors.ServiceConfigError(f"Got an exception checking that tokens has the tenant_definition_updater role;"
+                                        f"exception: {e}")
+    if not has_role.isAuthorized:
+        raise errors.ServiceConfigError(f"Got FALSE checking that tokens has the tenant_definition_updater role;"
+                                        f"has_role: {has_role}")
+    print("tokens user has necessary role.")
+
 
 def main():
     validate_config()
     if not ACTUALLY_RUN_UPDATES:
+        print('config was valid. ACTUALLY_RUN_UPDATES was False so exiting...')
         return
+    print('config was valid and ACTUALLY_RUN_UPDATES was true, so starting the updates...')
     if conf.running_at_primary_site:
         if conf.update_associate_site:
             update_associate_site_pub_keys()
