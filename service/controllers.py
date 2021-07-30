@@ -37,10 +37,18 @@ class TokensResource(Resource):
             check_extra_claims(request.json.get('claims'))
             # set it to the raw request's claims object which is an arbitrary python dictionary
             validated_body.claims = request.json.get('claims')
-        logger.debug("extra claims check approved.")
-        token_data = TapisAccessToken.get_derived_values(validated_body)
+        try:
+            token_data = TapisAccessToken.get_derived_values(validated_body)
+        except Exception as e:
+            logger.error(f"Got exception trying to compute get_derived_values() for validated body; e: {e}")
+            raise errors.AuthenticationError("Unable to create token. Please contact system administrator.")
         access_token = TapisAccessToken(**token_data)
-        access_token.sign_token()
+        try:
+            access_token.sign_token()
+        except Exception as e:
+            logger.error(f"Got exception trying to sign token! Exception: {e}")
+            raise errors.AuthenticationError("Unable to sign token. Please contact system administrator.")
+
         result = {'access_token': access_token.serialize}
 
         # refresh token --
@@ -140,6 +148,7 @@ class SigningKeysResource(Resource):
         logger.debug("returned from check_authz_private_keypair; updating keys...")
         private_key, public_key = generate_private_keypair_in_sk(tenant_id)
         # update the tenant definition with the new public key
+        logger.debug(f"making request to update tenant {tenant_id} with new public key.")
         try:
             t.tenants.update_tenant(tenant_id=tenant_id, public_key=public_key)
         except Exception as e:
@@ -148,8 +157,10 @@ class SigningKeysResource(Resource):
                          f"Exception: {e}")
             raise errors.ResourceError(msg=f'Unable to update tenant definition with new public key'
                                            f'Please contact system administrators.')
+        logger.info(f"tenant {tenant_id} has been updated with the new public key.")
         # update token's tenant cache with this private key for signing:
-        for tenant in tenants.tenant:
+        logger.debug("updating token cache...")
+        for tenant in tenants.tenants:
             if tenant.tenant_id == tenant_id:
                 tenant.private_key = private_key
 
