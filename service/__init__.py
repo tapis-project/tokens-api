@@ -17,20 +17,17 @@ class TokensTenants(Tenants):
         :param t: a tenant
         :return:
         """
-        if not conf.use_sk:
-            t.private_key = conf.dev_jwt_private_key
-            t.access_token_ttl = conf.dev_default_access_token_ttl
-            t.refresh_token_ttl = conf.dev_default_refresh_token_ttl
-        else:
-            # we need to get the PK from the security kernel, but in order to do that we must have a
-            # working tapipy client, which isn't created until the auth module initializes. However,
-            # in order to create the tapipy client, we need a private key for at least the site admin tenant so
-            # that we can sign a service token for it.
-            # Therefore, tokens API requires the private key for its tenant to be injected into the container,
-            # and here we set that private key.
-            # todo -- this attribute name should be changed, from dev_jwt_private_key to site_admin_jwt_private_key
-            # or something similar...
-            t.private_key = conf.dev_jwt_private_key
+        # if conf.use_sk is true, we need to get the PKs from the security kernel, but in order to do that we must have
+        # a working tapipy client, which isn't created until the auth module initializes. However,
+        # in order to create the tapipy client, we need a private key for at least the site admin tenant so
+        # that we can sign a service token for it.
+        # Therefore, tokens API requires the private key for its tenant to be injected into the container,
+        # and here we set that private key.
+        t.private_key = conf.dev_jwt_private_key
+        # todo -- the dev_jwt_private_key attribute name should be changed, to site_admin_jwt_private_key
+        #  or something similar...
+        t.access_token_ttl = conf.dev_default_access_token_ttl
+        t.refresh_token_ttl = conf.dev_default_refresh_token_ttl
         return t
 
     def get_tenant_signing_keys_from_sk(self, t, tenant_id):
