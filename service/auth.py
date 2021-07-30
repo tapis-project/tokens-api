@@ -73,6 +73,7 @@ def get_signing_keys_for_all_tenants_from_sk():
         if not tenant.site_id == conf.service_site_id:
             logger.debug(f"skipping tenant_id {tenant.tenant_id} as it is owned by site {tenant.site_id} and this tokens"
                          f"API is serving site {conf.service_site_id}.")
+            continue
         logger.debug(f"retrieving signing key for tenant {tenant.tenant_id}")
         tenant.private_key, _ = tenants.get_tenant_signing_keys_from_sk(t, tenant.tenant_id)
 
@@ -204,7 +205,6 @@ def get_basic_auth_parts():
     if 'Authorization' in request.headers:
         logger.debug("request contained a basic auth header... building parts.")
         auth = request.authorization
-        logger.debug(f"auth = {auth}")
         try:
             return {'username': auth.username,
                     'password': auth.password}
@@ -286,7 +286,9 @@ def check_authz_private_keypair(tenant_id):
     """
     # first check if the tenant_id is a tenant that this Tokens API handles
     logger.debug(f"top of check_authz_private_keypair for: {tenant_id}")
-    request_tenant = t.tenants.get_tenant_config(tenant_id=tenant_id)
+    # note that the tenant_id here could be for a tenant in status DRAFT or INACTIVE and therefore will not
+    # be in the tenant cache. we have to go directly to the tenants API for to get the description for this tenant.
+    request_tenant = t.tenants.get_tenant(tenant_id=tenant_id)
     site_id_for_request = request_tenant.site_id
     logger.debug(f"request_tenant: {request_tenant}; site_id_for_request: {site_id_for_request}")
     if not conf.service_site_id == site_id_for_request:
@@ -311,7 +313,7 @@ def check_authz_private_keypair(tenant_id):
     # if the token tenant_id did not match the tenant_id in the request, the only way the request will be authorized is
     # if the token tenant_id is for the admin tenant of the owning site (which is the site of this Tokens API).
     # to check this, get the site associated with the token:
-    token_tenant = t.tenants.get_tenant_config(tenant_id=g.tenant_id)
+    token_tenant = tenants.get_tenant_config(tenant_id=g.tenant_id)
     site_id_for_token = token_tenant.site_id
     logger.debug(f"site_id_for_token: {site_id_for_token}")
     if site_id_for_request == site_id_for_token:
@@ -329,6 +331,7 @@ def generate_private_keypair_in_sk(tenant_id):
     Generate a public/private key pair using SK for tenant_id. Returns the private key and the
     public key.
     """
+    logger.debug(f"top of generate_private_keypair_in_sk for tenant_id: {tenant_id}")
     try:
         # note: writeSecret does not return the signing key generated; for that we have to
         # call readSecret
@@ -342,4 +345,5 @@ def generate_private_keypair_in_sk(tenant_id):
                          )
     except Exception as e:
         logger.error(f"Error from SK trying to generate key pair; exception: {e}")
+    logger.info(f"new jwtsigning secret generated in SK for tenant id: {tenant_id}")
     return tenants.get_tenant_signing_keys_from_sk(t, tenant_id)
