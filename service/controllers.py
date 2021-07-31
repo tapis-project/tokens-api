@@ -163,5 +163,7 @@ class SigningKeysResource(Resource):
         for tenant in tenants.tenants:
             if tenant.tenant_id == tenant_id:
                 tenant.private_key = private_key
+        result = {'public_key': public_key}
+        return utils.ok(result=result, msg="Tenant signing keys update successful.")
 
 
