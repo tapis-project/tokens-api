@@ -1,6 +1,28 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 1.0.0 - 2021-07-31
+Initial production release of the Tapis Tokens API with support for generating signed
+JWTs for both users and services. The Tokens API also provides an administrative endpoint
+for updating the public/private key pair used for signing tokens associated with a tenant.
+This repository also includes the build files and source  code for the `tapis/keys-mgt` image,
+a command-line utility for initializing the public/private keys associate with a new site or set
+of tenants.
+
+For more details, please see the documentations: https://tapis.readthedocs.io/en/latest/technical/authentication.html
+
+Live-docs: https://tapis-project.github.io/live-docs/
+
+### Breaking Changes:
+- Initial release.
+
+### New features:
+ - Initial release.
+
+### Bug fixes:
+- None.
+
+
 ## 0.1.0 - 2020-2-1 (target)
 ### Added
 - Initial alpha release.
