@@ -24,6 +24,15 @@ The `API_NAME` variable is used to let the `make` system know which Tapis servic
 Currently the Tokens API is stateless, i.e., does not require any database. That may change in the future, but for now,
 the only requirement is the service itself. Do the following steps to build and run the service locally:
 
+1. Connect to the TACC VPN. 
+2. Add the develop instance Tokens API password to the `config-local.json` file, the 
+   `service_password` attribute.
+3. Add the admin tenant's private key for the develop instance to the `config-local.json` file, the 
+   `dev_jwt_private_key` attribute.    
+4. Make sure the `tenants` attribute includes all tenants you wish to work with. Each of these
+   must be valid tenants in the develop instance and must be owned by the admin site.
+
+Then, run the following commands:
 1. `make build.api` - Build a new version of the API container image.
 2. `docker-compose up -d tokens` - start a new version of the Tokens API.
 
@@ -169,15 +178,19 @@ $ curl -H "Content-type: application/json" -d '{"token_tenant_id": "dev", "accou
 ```
 
 ### Key Format and Generating a Public/Private Key Pair
-(TODO - needs more detail)
-
 The format of the public and private keys must be exact. Specifically, the `-----BEGIN RSA PRIVATE KEY-----\n`
 and `-----END RSA PRIVATE KEY-----\n` must be included in the private key
 and the `-----BEGIN RSA PUBLIC KEY-----\n` and `-----END RSA PUBLIC KEY-----\n` must
 be included in the public key. 
 
+Key generation is now handled by the Tapis Security Kernel. The Tokens API includes an endpoint, `PUT /v3/tokens/keys`,
+for updating the public/private key pair for a tenant. It calls the SK to generate the new pair and then makes an API
+request to the Tenants API to update the tenant record with the new public key.
+
 For local development, generate a public/private RSA256 key pair with the following commands:
 
+
+#### Old Instructions for Manually Generating Keys (Deprecated)
 First, generate a private key and write it to a file -  
 ```
 $ private_key=`openssl genrsa 1024`
