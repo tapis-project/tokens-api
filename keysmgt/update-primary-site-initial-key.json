@@ -1,0 +1,10 @@
+{
+  "use_sk": false,
+  "service_name": "tokens",
+  "dev_jwt_private_key": "<todo>",
+  "site_id": "tacc",
+  "service_tenant_id": "admin",
+  "running_at_primary_site": true,
+  "tenants": ["admin", "dev", "tacc", "cii", "a2cps"],
+  "update_associate_site": false
+}
