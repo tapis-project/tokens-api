@@ -1,4 +1,4 @@
-from tapisservice.tenants import Tenants
+from tapisservice.tenants import TenantCache
 from tapisservice.config import conf
 from tapisservice import errors
 from flask import Flask
@@ -9,7 +9,7 @@ from tapisservice.logs import get_logger
 logger = get_logger(__name__)
 
 
-class TokensTenants(Tenants):
+class TokensTenants(TenantCache):
 
     def extend_tenant(self, t):
         """
@@ -23,9 +23,19 @@ class TokensTenants(Tenants):
         # that we can sign a service token for it.
         # Therefore, tokens API requires the private key for its tenant to be injected into the container,
         # and here we set that private key.
-        t.private_key = conf.dev_jwt_private_key
-        # todo -- the dev_jwt_private_key attribute name should be changed, to site_admin_jwt_private_key
-        #  or something similar...
+
+        # the name of the attribute that has the private key for the site admin tenant is: site_admin_privatekey        
+        tenant_id = t.tenant_id
+        if not tenant_id in conf.tenants:
+            logger.debug(f"skipping tenant_id: {tenant_id} as it is not in the list of tenants.")
+            return t
+        try:
+            t.private_key = conf.site_admin_privatekey
+        except Exception as e:
+            msg = f"Tokens could not get the private key attribute from the conf object. "\
+                     "It was looking for an attribute called site_admin_privatekey. Here is the conf object: {conf}."
+            logger.error(msg)
+            raise e
         t.access_token_ttl = conf.dev_default_access_token_ttl
         t.refresh_token_ttl = conf.dev_default_refresh_token_ttl
         return t
@@ -40,7 +50,8 @@ class TokensTenants(Tenants):
             result = t.sk.readSecret(secretType='jwtsigning',
                                      secretName='keys',
                                      tenant=tenant_id,
-                                     user='tokens')
+                                     user='tokens',
+                                     _tapis_set_x_headers_from_service=True)
         except Exception as e:
             logger.error(f"Error from SK trying to read tenant signing key for tenant {tenant_id}; exception: {e}")
             raise e

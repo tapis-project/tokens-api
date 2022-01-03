@@ -17,6 +17,10 @@
       "description": "The default TTL for access tokens in dev mode. NOTE: This should NOT be used in production",
       "default": 300
     },
+    "python_framework_type": {
+      "type": "string",
+      "default": "flask"
+    },
     "dev_default_refresh_token_ttl": {
       "type": "integer",
       "description": "The default TTL for refresh tokens in dev mode. NOTE: This should NOT be used in production",
