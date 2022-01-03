@@ -1,15 +1,16 @@
 import tapipy
 import uuid
-from common.auth import get_service_tapis_client, authentication
-from common.config import conf
-from common import errors as common_errors
+from tapisservice.auth import get_service_tapis_client 
+from tapisservice.tapisflask.auth import authentication
+from tapisservice.config import conf
+from tapisservice import errors as common_errors
 from flask import g, request
 from service.errors import InvalidTokenClaimsError
 from service.models import AccessTokenData, TapisAccessToken
 from service import tenants
 
 # get the logger instance -
-from common.logs import get_logger
+from tapisservice.logs import get_logger
 logger = get_logger(__name__)
 
 logger.debug("top of auth.py")

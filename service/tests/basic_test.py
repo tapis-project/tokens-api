@@ -3,8 +3,8 @@ import pytest
 import json
 from unittest import TestCase
 from service.api import app
-from common import auth
-from common.config import conf
+from tapisservice import auth
+from tapisservice.config import conf
 
 # These tests are intended to be run locally.
 

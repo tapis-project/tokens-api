@@ -1,14 +1,13 @@
 import datetime
 import jwt
 import uuid
-import dateutil.parser
 
-from common.errors import DAOError
+from tapisservice.errors import DAOError
 
 from service import tenants, errors
 
 # get the logger instance -
-from common.logs import get_logger
+from tapisservice.logs import get_logger
 logger = get_logger(__name__)
 
 

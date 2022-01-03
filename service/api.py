@@ -1,5 +1,5 @@
-from common.utils import TapisApi, handle_error, flask_errors_dict
-from common.resources import HelloResource, ReadyResource
+from tapisservice.tapisflask.utils import TapisApi, handle_error, flask_errors_dict
+from tapisservice.tapisflask.resources import HelloResource, ReadyResource
 
 from service.auth import authn_and_authz
 from service.controllers import TokensResource, SigningKeysResource

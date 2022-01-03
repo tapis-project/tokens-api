@@ -1,11 +1,11 @@
-from common.auth import Tenants
-from common.config import conf
-from common import errors
+from tapisservice.tenants import Tenants
+from tapisservice.config import conf
+from tapisservice import errors
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
-from common.logs import get_logger
+from tapisservice.logs import get_logger
 logger = get_logger(__name__)
 
 

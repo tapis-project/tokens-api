@@ -8,8 +8,9 @@ from flask import request
 from flask_restful import Resource
 from openapi_core.shortcuts import RequestValidator
 from openapi_core.wrappers.flask import FlaskOpenAPIRequest
-from common.config import conf
-from common import auth, utils, errors
+from tapisservice.config import conf
+from tapisservice import auth, errors
+from tapisservice.tapisflask import utils
 
 from service.auth import check_extra_claims, check_authz_private_keypair, generate_private_keypair_in_sk, t
 from service.models import TapisAccessToken, TapisRefreshToken
@@ -17,7 +18,7 @@ from service import tenants
 
 
 # get the logger instance -
-from common.logs import get_logger
+from tapisservice.logs import get_logger
 logger = get_logger(__name__)
 
 
