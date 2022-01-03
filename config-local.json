@@ -3,5 +3,6 @@
   "use_sk": true,
   "tenants": ["dev", "admin"],
   "log_level": "DEBUG",
-  "use_allservices_password": true
+  "use_allservices_password": true,
+  "site_admin_privatekey": "TODO -- update"
 }
