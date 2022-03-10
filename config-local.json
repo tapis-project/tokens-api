@@ -1,5 +1,8 @@
 {
   "service_name": "tokens",
+  "primary_site_admin_tenant_base_url": "https://admin.develop.tapis.io",
+  "service_site_id": "tacc",
+  "service_tenant_id": "admin",
   "use_sk": true,
   "tenants": ["dev", "admin"],
   "log_level": "DEBUG",
