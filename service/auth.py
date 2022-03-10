@@ -1,7 +1,7 @@
 import tapipy
 import uuid
 from tapisservice.auth import get_service_tapis_client 
-from tapisservice.tapisflask.auth import authentication
+from tapisservice.tapisflask.auth import authentication, resolve_tenant_id_for_request
 from tapisservice.config import conf
 from tapisservice import errors as common_errors
 from flask import g, request
@@ -110,6 +110,10 @@ def authn_and_authz():
             "Invalid request: the API endpoint does not exist or the provided HTTP method is not allowed.", 405)
     # if we are using the SK, we require basic auth on generating tokens (access or refresh).
     if conf.use_sk:
+        # if a request sets both a basic auth header AND an x-tapis-token header, we should immeditely
+        # throw an error:
+        if 'Authorization' in request.headers and 'X-Tapis-Token' in request.headers:
+            raise common_errors.BaseTapisError("Invalid request: both X-Tapis-Token and HTTP Basic Auth headers set; please set only one.")
         # first check if this is a request to update the token signing keys
         if 'tokens/keys' in request.url_rule.rule:
             # check for a Tapis token
@@ -139,6 +143,10 @@ def authn_and_authz():
             # check for basic auth header:
             parts = get_basic_auth_parts()
             if parts:
+                # note that we cannot call the authentication() function in this case because there is not a token header.
+                # still, we need to resolve the tenant_id for the request
+                resolve_tenant_id_for_request()
+
                 # check that request POST data contains tenant_id and username and that the username matches that
                 # in the HTTP Basic Auth header; otherwise, service could impersonate other services/tenants.
                 try:
@@ -240,7 +248,8 @@ def check_service_password(tenant_id, username, password):
                                               secretName= 'password',
                                               tenant=tenant_id,
                                               user=username,
-                                              password=password)
+                                              password=password,
+                                              _tapis_set_x_headers_from_service=True)
     except tapipy.errors.InvalidInputError as e:
         logger.info(f"Got InvalidInputError trying to check service password inside SK secretMap. Exception: {e}")
         raise common_errors.AuthenticationError(msg='Invalid service account/password combination. Service account may not be registered with SK.')
@@ -248,7 +257,7 @@ def check_service_password(tenant_id, username, password):
         logger.debug(f"got exception from call to validateServicePassword; e: {e}; type(e): {type(e)}")
         if type(e) == common_errors.AuthenticationError:
             raise e
-        logger.error(f'Got exception trying to retrieve the secret {secret_name} from SK. Exception: {e}')
+        logger.error(f"Got exception trying to check the service {username}'s password with SK. Exception: {e}")
         raise common_errors.AuthenticationError(msg='Tokens API got an error trying to contact SK to validate service secret.')
     if not result.isAuthorized:
         logger.debug(f"got isAuthorized==False from call to validateServicePassword. Full result: {result}")
