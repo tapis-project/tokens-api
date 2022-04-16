@@ -1,6 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+
+## 1.1.1 - 2022-04-16
+This release fixes a bug in the Tokens API that prevented services from being able to generate service
+tokens using a service JWT authentication mechanism (see issue #3).
+
+### Breaking Changes:
+- None.
+
+### New features:
+- None.
+
+
 ## 1.1.0 - 2022-03-01
 This release converts the Tokens API to using the new `tapipy-tapisservice` plugin-based 
 Tapis Python SDK and makes updates necessary for supporting deployment automation provided
