@@ -114,6 +114,7 @@ def authn_and_authz():
         # throw an error:
         if 'Authorization' in request.headers and 'X-Tapis-Token' in request.headers:
             raise common_errors.BaseTapisError("Invalid request: both X-Tapis-Token and HTTP Basic Auth headers set; please set only one.")
+
         # first check if this is a request to update the token signing keys
         if 'tokens/keys' in request.url_rule.rule:
             # check for a Tapis token
@@ -140,21 +141,20 @@ def authn_and_authz():
         # otherwise, this is a request to create a token (either with a service account/password (POST) or with a
         # refresh token (PUT).
         if request.method == 'POST': # note: PUT (i.e. refresh) does NOT require additional auth
+            # check that request POST data contains tenant_id and username and that the username matches that
+            # in the HTTP Basic Auth header; otherwise, service could impersonate other services/tenants.
+            try:
+                tenant_id = request.get_json().get('token_tenant_id')
+                username = request.get_json().get('token_username')
+            except Exception as e:
+                logger.info(f"Got exception trying to parse JSON from request; e: {e}; type(e):{type(e)}")
+                raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?')
             # check for basic auth header:
             parts = get_basic_auth_parts()
             if parts:
                 # note that we cannot call the authentication() function in this case because there is not a token header.
                 # still, we need to resolve the tenant_id for the request
                 resolve_tenant_id_for_request()
-
-                # check that request POST data contains tenant_id and username and that the username matches that
-                # in the HTTP Basic Auth header; otherwise, service could impersonate other services/tenants.
-                try:
-                    tenant_id = request.get_json().get('token_tenant_id')
-                    username = request.get_json().get('token_username')
-                except Exception as e:
-                    logger.info(f"Got exception trying to parse JSON from request; e: {e}; type(e):{type(e)}")
-                    raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?')
                 if not username == parts['username']:
                     raise common_errors.AuthenticationError('Invalid POST data -- username does not match auth header.')
                 if not tenant_id:
@@ -167,7 +167,13 @@ def authn_and_authz():
                 # check for a Tapis token -- this call should put username and tenant on the g object
                 logger.debug("did not get parts, checking for tapis token..")
                 authentication()
-                # now, check with SK that service is authorized for the action. Token generation is controlled by a
+                # if this is a request from a service to generate a token for itself, we do not need to check
+                # the SK role.
+                if username == g.username and tenant_id == g.tenant_id:
+                    return True
+
+                # otherwise, this is a request to generate a token for a subject other than the service, so we need 
+                # to check with SK that the service is authorized for the action. Token generation is controlled by a
                 # specific role corresponding to the tenant that the caller is trying to create the token in.
                 try:
                     tenant_id = request.get_json().get('token_tenant_id')
