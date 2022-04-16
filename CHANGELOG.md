@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## 1.1.1 - 2022-04-16
 This release fixes a bug in the Tokens API that prevented services from being able to generate service
-tokens using a service JWT authentication mechanism (see issue #3).
+tokens using a service JWT authentication mechanism (see issue #3). It also reverts Tokens API back to
+using the `tapis/flaskbase` image, as the `tapis/flaskbase-plugins` image has now become the
+official flaskbase image. 
 
 ### Breaking Changes:
 - None.
