@@ -29,10 +29,16 @@ class TokensResource(Resource):
     def post(self):
         logger.debug("top of  POST /tokens")
         validator = RequestValidator(utils.spec)
-        validated = validator.validate(FlaskOpenAPIRequest(request))
+        validated = validator.validate(FlaskOpenAPIRequest(request))        
         if validated.errors:
             raise errors.ResourceError(msg=f'Invalid POST data: {validated.errors}.')
         validated_body = validated.body
+        try:
+            token_tenant_id = validated_body.token_tenant_id
+        except:
+            raise errors.ResourceError(msg=f'Invalid POST data: token_tenant_id is required.')
+        if not token_tenant_id in conf.tenants:
+            raise errors.ResourceError(msg=f'Invalid POST data: token_tenant_id ({token_tenant_id}) is not served by this Tokens API. tenants served: {conf.tenants}')
         # this raises an exception if the claims are invalid -
         if hasattr(validated_body, 'claims'):
             check_extra_claims(request.json.get('claims'))
