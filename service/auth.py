@@ -27,12 +27,6 @@ def get_tokens_tapis_client():
     Instantiates and returns a tapis client for the Tokens service by generating the service tokens
     using the private key associated with the admin tenant.
     """
-    # start with a service client using the convenience function from the common package.
-    # we put a 'dummy' jwt here to tell it to skip token generation, since we need to
-    # generate our own tokens:
-    t = get_service_tapis_client(jwt="dummy",
-                                 tenant_id=conf.service_tenant_id,
-                                 tenants=tenants)
     # generate our own service tokens ---
     # minimal data needed to create an access token:
     base_token_data = AccessTokenData(jti=uuid.uuid4(),
@@ -44,10 +38,13 @@ def get_tokens_tapis_client():
     # set up the service tokens object: dictionary mapping of tenant_id to token data for all
     # tenants the Tokens API will need to interact with.
     service_tokens = {t: {} for t in tenants.get_site_admin_tenants_for_service()}
+    logger.debug(f"Starting to generate signed tokens for the following tenant ids: {service_tokens.keys()}")
     for tenant_id in service_tokens.keys():
+        logger.debug(f"generating a service token for tenant {tenant_id}.")
         try:
             target_site_id = tenants.get_tenant_config(tenant_id=tenant_id).site_id
         except Exception as e:
+            logger.error(f"was unable to retrieve config for tenant {tenant_id}; failed to generate a token.")
             raise common_errors.BaseTapyException(f"Got exception computing target site id; e:{e}")
         base_token_data.target_site_id = target_site_id
         token_data = TapisAccessToken.get_derived_values(base_token_data)
@@ -57,6 +54,15 @@ def get_tokens_tapis_client():
         # in its get_tokens() methods
         access_token.access_token = access_token.jwt
         service_tokens[tenant_id]['access_token'] = access_token
+        logger.debug(f"token for tenant id {tenant_id} created. ")
+
+    our_admin_jwt = service_tokens[conf.service_tenant_id]['access_token'].access_token
+    # use the convenience function from the common package to generate a service client
+    # we skip token generation, since we generated our own tokens:
+    t = get_service_tapis_client(tenant_id=conf.service_tenant_id,
+                                 jwt=our_admin_jwt,
+                                 tenants=tenants,
+                                 generate_tokens=False)
 
     # attach our service_tokens to the client and return --
     t.service_tokens = service_tokens
@@ -68,7 +74,9 @@ def get_signing_keys_for_all_tenants_from_sk():
     Retrieve all signing keys for all tenants served by this Tokens API.
     This function is called at service start up.
     """
-    logger.debug('top of get_signing_keys_for_all_tenants_from_sk; retrieving tenant signing keys...')
+    logger.debug('top of get_signing_keys_for_all_tenants_from_sk; retrieving tenant signing keys.')
+    tenant_ids = [t.tenant_id for t in tenants.tenants]
+    logger.debug(f'Tokens found these tenants: {tenant_ids};\nit will pull signing keys for tenants at its site only.')
     for tenant in tenants.tenants:
         # need to check if this is a tenant this Tokens API serves:
         if not tenant.site_id == conf.service_site_id:
@@ -84,6 +92,7 @@ t = get_tokens_tapis_client()
 logger.debug("got tapipy client for tokens.")
 # use tapipy client to get the signing keys from the SK at start up...
 if conf.use_sk:
+    logger.debug("Retrieving signing keys for all tenants from SK...")
     get_signing_keys_for_all_tenants_from_sk()
 
 
