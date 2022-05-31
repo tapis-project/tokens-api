@@ -25,6 +25,7 @@ class TokensTenants(TenantCache):
         # and here we set that private key.
 
         # the name of the attribute that has the private key for the site admin tenant is: site_admin_privatekey        
+        logger.debug(f"top of extend_tenant for tenant: {t.tenant_id}")
         tenant_id = t.tenant_id
         if not tenant_id in conf.tenants:
             logger.debug(f"skipping tenant_id: {tenant_id} as it is not in the list of tenants.")
