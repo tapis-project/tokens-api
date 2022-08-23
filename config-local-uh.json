@@ -1,0 +1,12 @@
+{
+    "service_name": "tokens",
+    "primary_site_admin_tenant_base_url": "https://admin.develop.tapis.io",
+    "service_site_id": "uh",
+    "service_tenant_id": "uhadmin",
+    "use_sk": true,
+    "log_level": "DEBUG",
+    "tenants": ["uhadmin", "uhdev"],
+    "use_allservices_password": true,
+    "site_admin_privatekey": "TODO -- update"
+    
+}
