@@ -75,9 +75,7 @@ def get_signing_keys_for_all_tenants_from_sk():
     This function is called at service start up.
     """
     logger.debug('top of get_signing_keys_for_all_tenants_from_sk; retrieving tenant signing keys.')
-    tenant_ids = [t.tenant_id for t in tenants.tenants]
-    logger.debug(f'Tokens found these tenants: {tenant_ids};\nit will pull signing keys for tenants at its site only.')
-    for tenant in tenants.tenants:
+    for _id, tenant in tenants.tenants.items():
         # need to check if this is a tenant this Tokens API serves:
         if not tenant.site_id == conf.service_site_id:
             logger.debug(f"skipping tenant_id {tenant.tenant_id} as it is owned by site {tenant.site_id} and this tokens"
@@ -119,7 +117,7 @@ def authn_and_authz():
             "Invalid request: the API endpoint does not exist or the provided HTTP method is not allowed.", 405)
     # if we are using the SK, we require basic auth on generating tokens (access or refresh).
     if conf.use_sk:
-        # if a request sets both a basic auth header AND an x-tapis-token header, we should immeditely
+        # if a request sets both a basic auth header AND an x-tapis-token header, we should immediately
         # throw an error:
         if 'Authorization' in request.headers and 'X-Tapis-Token' in request.headers:
             raise common_errors.BaseTapisError("Invalid request: both X-Tapis-Token and HTTP Basic Auth headers set; please set only one.")
@@ -147,6 +145,19 @@ def authn_and_authz():
                 raise common_errors.PermissionsError(msg='Not authorized to modify the tenant gining keys.')
             return True
 
+        # next, check whether this is a request to revoke a token
+        if 'tokens/revoke' in request.url_rule.rule:
+            # anyone with a token is currently allowed to revoke it. the only issue is whether this tokens API
+            # should revoke it. 
+            try:
+                token_str = request.get_json().get('token')
+            except Exception as e:
+                logger.info(f"Got exception trying to parse JSON from request; e: {e}; type(e):{type(e)}")
+                raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?')
+            # for now, we allow any site to revoke any token. we can revisit this in the future
+            return True
+
+
         # otherwise, this is a request to create a token (either with a service account/password (POST) or with a
         # refresh token (PUT).
         if request.method == 'POST': # note: PUT (i.e. refresh) does NOT require additional auth
@@ -171,6 +182,7 @@ def authn_and_authz():
                 # do basic auth with SK and tapis client.
                 logger.debug("got parts, checking service password..")
                 check_service_password(tenant_id, parts['username'], parts['password'])
+                logger.debug("password was valid.")
                 return True
             else:
                 # check for a Tapis token -- this call should put username and tenant on the g object

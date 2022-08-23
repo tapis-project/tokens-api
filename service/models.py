@@ -105,7 +105,7 @@ class TapisToken(object):
     def serialize(self):
         return {
             'jti': self.jti,
-            f'{self.token_type}_token': self.jwt.decode('utf-8'),
+            f'{self.token_type}_token': self.jwt,
             'expires_in': self.ttl,
             'expires_at': self.expires_at
         }

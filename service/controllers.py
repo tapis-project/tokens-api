@@ -1,4 +1,6 @@
 import copy
+from email import header
+import resource
 import traceback
 import uuid
 from flask import Flask
@@ -6,6 +8,7 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask import request
 from flask_restful import Resource
+import requests
 from openapi_core.shortcuts import RequestValidator
 from openapi_core.wrappers.flask import FlaskOpenAPIRequest
 from tapisservice.config import conf
@@ -37,6 +40,7 @@ class TokensResource(Resource):
             token_tenant_id = validated_body.token_tenant_id
         except:
             raise errors.ResourceError(msg=f'Invalid POST data: token_tenant_id is required.')
+        logger.debug(f"got token_tenant_id: {token_tenant_id}")
         if not token_tenant_id in conf.tenants:
             raise errors.ResourceError(msg=f'Invalid POST data: token_tenant_id ({token_tenant_id}) is not served by this Tokens API. tenants served: {conf.tenants}')
         # this raises an exception if the claims are invalid -
@@ -44,26 +48,32 @@ class TokensResource(Resource):
             check_extra_claims(request.json.get('claims'))
             # set it to the raw request's claims object which is an arbitrary python dictionary
             validated_body.claims = request.json.get('claims')
+        logger.debug(f"got validated_body claims")
         try:
             token_data = TapisAccessToken.get_derived_values(validated_body)
         except Exception as e:
             logger.error(f"Got exception trying to compute get_derived_values() for validated body; e: {e}")
             raise errors.AuthenticationError("Unable to create token. Please contact system administrator.")
         access_token = TapisAccessToken(**token_data)
+        logger.debug("access token created")
         try:
             access_token.sign_token()
         except Exception as e:
             logger.error(f"Got exception trying to sign token! Exception: {e}")
             raise errors.AuthenticationError("Unable to sign token. Please contact system administrator.")
-
+        logger.debug("access token signed")
         result = {'access_token': access_token.serialize}
 
         # refresh token --
         if hasattr(validated_body, 'generate_refresh_token') and validated_body.generate_refresh_token:
+            logger.debug("generating refresh token")
             if hasattr(validated_body, 'refresh_token_ttl'):
                 token_data['refresh_token_ttl'] = validated_body.refresh_token_ttl
+            
             refresh_token = TokensResource.get_refresh_from_access_token_data(token_data, access_token)
             result['refresh_token'] = refresh_token.serialize
+            logger.debug("refresh token generated ")
+        logger.debug("returning token response")
         return utils.ok(result=result, msg="Token generation successful.")
 
     def put(self):
@@ -136,6 +146,47 @@ class TokensResource(Resource):
         refresh_token = TapisRefreshToken(**refresh_token_data)
         refresh_token.sign_token()
         return refresh_token
+
+
+class RevokeTokensResource(Resource):
+    """
+    Revoke a Tapis JWT.
+    """
+    def post(self):
+        logger.debug("top of POST /tokens/revoke")
+        validator = RequestValidator(utils.spec)
+        validated = validator.validate(FlaskOpenAPIRequest(request))        
+        if validated.errors:
+            raise errors.ResourceError(msg=f'Invalid POST data: {validated.errors}.')
+        validated_body = validated.body
+        token_str = validated.body.token
+        try:
+            token_data = auth.validate_token(token_str)
+        except errors.AuthenticationError as e:
+            raise errors.ResourceError(msg=f'Invalid POST data; could not validate the token: debug data: {e}.')
+        # call the site-router to add the token to the revocation table
+        # we always call the site-router located at our site and with the X-Tapis-Tenant and User
+        # headers set to ourselves (tokens api)
+        url = f'{t.base_url}/v3/site-router/tokens/revoke'
+        request_tenant_id = conf.service_tenant_id
+        request_user = conf.service_name
+        try:
+            service_token =  t.service_tokens[request_tenant_id]['access_token'].access_token
+        except Exception as e:
+            logger.error(f"Could not get the token's service access token; details: {e}")
+            raise errors.ResourceError(msg='Service error revoking token: contact service admins.')
+        headers = {
+            'X-Tapis-Tenant': request_tenant_id, 
+            'X-Tapis-User': request_user,
+            'X-Tapis-Token': service_token,
+        }
+        try:
+            rsp = requests.post(url, headers=headers, json={"token": token_str})
+            rsp.raise_for_status()
+        except Exception as e:
+            logger.info(f"Got exception in call to site-router; exception: {e}")
+            raise errors.ResourceError(msg=f'Error contacting Tapis to revoke token; details: {e}')
+        return utils.ok(result='', msg=f"Token {token_data['jti']} has been revoked.")
 
 
 class SigningKeysResource(Resource):

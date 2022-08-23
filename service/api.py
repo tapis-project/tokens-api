@@ -2,7 +2,7 @@ from tapisservice.tapisflask.utils import TapisApi, handle_error, flask_errors_d
 from tapisservice.tapisflask.resources import HelloResource, ReadyResource
 
 from service.auth import authn_and_authz
-from service.controllers import TokensResource, SigningKeysResource
+from service.controllers import TokensResource, SigningKeysResource, RevokeTokensResource
 
 from service import app, db
 
@@ -26,4 +26,5 @@ api.add_resource(ReadyResource, '/v3/tokens/ready')
 api.add_resource(HelloResource, '/v3/tokens/hello')
 
 api.add_resource(TokensResource, '/v3/tokens')
+api.add_resource(RevokeTokensResource, '/v3/tokens/revoke')
 api.add_resource(SigningKeysResource, '/v3/tokens/keys')

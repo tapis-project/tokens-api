@@ -3,8 +3,15 @@
 REST API for working with authentication tokens for the Tapis v3 Platform.
 
 ## Usage
-This repository includes build files and other assets needed to start the service locally. Clone this
-repository and follow the steps in the subsequent section.
+This repository includes build files and other assets needed to start the service locally. Clone 
+this repository and follow the steps in the subsequent section.
+
+### Update the config
+
+Before you can do anything with your local checkout (i.e., run the services locally, run the tests, 
+etc.) you will need to update the `config-local.json` file to populate  `site_admin_privatekey`
+with the private key associated with the admin tenant in the Tapis develop environment. The key is 
+stored in the Security Kernel; ask a member of the Tapis team if you do not know how to retrieve this key. 
 
 ### Start the API Locally
 We are automating the management of the lifecycle workflow with `make`. You will need to install `make` it in order
@@ -16,9 +23,13 @@ be sure to
 ```
 $ export API_NAME=tokens
 ```
-
 The `API_NAME` variable is used to let the `make` system know which Tapis service to work with.
 
+### Running the Tests
+
+Run the tests using the make command, `make test`. You don't need to deploy the tokens-api 
+container prior to running the tests -- the `make test` command starts a new container based on 
+the tests image and runs against the code running there. 
 
 #### First Time Setup
 Currently the Tokens API is stateless, i.e., does not require any database. That may change in the future, but for now,

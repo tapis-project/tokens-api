@@ -63,7 +63,7 @@ class TokensTenants(TenantCache):
 # singleton with all tenants data and reload capabilities, etc.
 tenants = TokensTenants()
 
-logger.debug("Inside tokens.__init__, got tenants")
+logger.debug(f"Inside tokens.__init__, got tenants; tenants.get_tenants().keys(): {tenants.get_tenants().keys()}")
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = conf.sql_db_url
