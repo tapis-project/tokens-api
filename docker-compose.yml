@@ -29,7 +29,9 @@ services:
         ports:
             - "5001:5000"
         volumes:
+            # uncomment one of the following ---
             - ./config-local.json:/home/tapis/config.json
+            # - ./config-local-uh.json:/home/tapis/config.json
             - ./service.log:/home/tapis/service.log
         networks:
             - tokens
@@ -43,6 +45,8 @@ services:
     tokens-tests:
         image: tapis/tokens-api-tests
         volumes:
+            # uncomment one of the following ---
             - ./config-local.json:/home/tapis/config.json
+            # - ./config-local-uh.json:/home/tapis/config.json
         environment:
             - allservices_password=ZjM3YzdlYjI3OTYwYzZhN2FhMzcyMGNh
