@@ -2,6 +2,33 @@
 All notable changes to this project will be documented in this file.
 
 
+## 1.2.1 - 2022-08-24
+This preview release adds support for token revocation.
+
+### Breaking Changes:
+- None.
+
+### New features:
+- A new endpoint has been added for token revocation. See issue #4 for more details. 
+
+### Bug fixes:
+- None.
+
+
+
+## 1.2.0 - 2022-06-03
+No updates made as part of this release.
+
+### Breaking Changes:
+- None.
+
+### New features:
+- None.
+
+### Bug fixes:
+- None.
+
+
 ## 1.1.1 - 2022-04-16
 This release fixes a bug in the Tokens API that prevented services from being able to generate service
 tokens using a service JWT authentication mechanism (see issue #3). It also reverts Tokens API back to
