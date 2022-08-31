@@ -13,7 +13,7 @@ incorrectly within the JSON body of its response to POST requests generating ref
 - None. 
 
 ### Bug fixes:
-- Fix issue where the JTI returned in JWON response did not match that of the generated refresh token 
+- Fix issue where the JTI returned in JSON response did not match that of the generated refresh token 
 in a response to POST requests generating refresh tokens.
 
 
