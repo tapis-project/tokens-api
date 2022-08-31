@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file.
 
 
+## 1.2.2 - 2022-09-02
+This bug fix release fixes a small issue where Tokens API reported the JTI of the generated refresh token 
+incorrectly within the JSON body of its response to POST requests generating refresh tokens.
+
+### Breaking Changes:
+- None.
+
+### New features:
+- None. 
+
+### Bug fixes:
+- Fix issue where the JTI returned in JWON response did not match that of the generated refresh token 
+in a response to POST requests generating refresh tokens.
+
+
 ## 1.2.1 - 2022-08-24
 This preview release adds support for token revocation.
 

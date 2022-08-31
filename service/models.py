@@ -240,7 +240,7 @@ class TapisRefreshToken(TapisToken):
         :return:
         """
         d = {
-            'jti': str(uuid.uuid4()), # self.jti,
+            'jti': self.jti,
             'iss': self.iss,
             'sub': self.sub,
             # we store the initial ttl on a refresh token because, when using the refresh operation, a new

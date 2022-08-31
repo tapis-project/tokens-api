@@ -130,8 +130,8 @@ class TokensResource(Resource):
         logger.debug("top of get_refresh_from_access_token_data()")
         logger.debug(f"token_data:{token_data}; access_token: {access_token}")
         # refresh tokens have all the same attributes as the associated access token (and same values)
-        # except that refresh tokens do not have `delegation`, `target_site`, or any extra claims, and they do have
-        # an `access_token` attr:
+        # except that refresh tokens do not have `delegation`, `target_site`, or any extra claims, 
+        # they have a different JTI, and they do have an `access_token` attr:
         token_data.pop('delegation')
         token_data.pop('target_site_id', None)
         token_data['access_token'] = access_token.claims_to_dict()
@@ -140,9 +140,9 @@ class TokensResource(Resource):
         token_data.pop('extra_claims', None)
         # record the requested ttl for the token so that we can use it to generate a token of equal length
         # at refresh
-        token_data['access_token']['ttl'] = token_data['ttl']
-        logger.debug(f"instantiating refresh token with token_data: {token_data}")
+        token_data['access_token']['ttl'] = token_data['ttl']        
         refresh_token_data = TapisRefreshToken.get_derived_values(token_data)
+        logger.debug(f"instantiating refresh token with refresh_token_data: {refresh_token_data}")
         refresh_token = TapisRefreshToken(**refresh_token_data)
         refresh_token.sign_token()
         return refresh_token
