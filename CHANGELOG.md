@@ -1,10 +1,23 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 1.2.3 - 2022-09-15
+This release prevents user tokens from being generated in the site-admin tenant. 
+
+### Breaking Changes:
+- None.
+
+### New features:
+- None. 
+
+### Bug fixes:
+- With this release, the Tokens API will no longer generate user tokens in the site-admin tenant. 
+  See issue #5.
+
 
 ## 1.2.2 - 2022-09-02
-This bug fix release fixes a small issue where Tokens API reported the JTI of the generated refresh token 
-incorrectly within the JSON body of its response to POST requests generating refresh tokens.
+This bug fix release fixes a small issue where Tokens API reported the JTI of the generated refresh
+token incorrectly within the JSON body of its response to POST requests generating refresh tokens.
 
 ### Breaking Changes:
 - None.
