@@ -196,6 +196,16 @@ def authn_and_authz():
                 # otherwise, this is a request to generate a token for a subject other than the service, so we need 
                 # to check with SK that the service is authorized for the action. Token generation is controlled by a
                 # specific role corresponding to the tenant that the caller is trying to create the token in.
+
+                # note: we do not allow generating tokens of type "user" in the site-admin tenant
+                try:
+                    account_type = request.get_json().get('account_type')
+                except Exception as e:
+                    logger.info(f"Got exception trying to parse JSON from Tapis token request; e: {e}; type(e):{type(e)}")
+                    raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?') 
+                if not account_type == 'service' and tenant_id == conf.service_tenant_id:
+                    raise common_errors.AuthenticationError('Invalid request -- only service tokens can be generated in the site-admin tenant.')
+                
                 try:
                     tenant_id = request.get_json().get('token_tenant_id')
                 except Exception as e:
