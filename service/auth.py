@@ -142,7 +142,7 @@ def authn_and_authz():
             logger.debug(f"got users: {users}; checking if {g.username} is in role {ROLE}.")
             if g.username not in users.names:
                 logger.info(f"user {g.username} was not in role {ROLE}. raising permissions error.")
-                raise common_errors.PermissionsError(msg='Not authorized to modify the tenant gining keys.')
+                raise common_errors.PermissionsError(msg='Not authorized to modify the tenant signing keys.')
             return True
 
         # next, check whether this is a request to revoke a token

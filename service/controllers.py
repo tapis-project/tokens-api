@@ -40,6 +40,9 @@ class TokensResource(Resource):
             token_tenant_id = validated_body.token_tenant_id
         except:
             raise errors.ResourceError(msg=f'Invalid POST data: token_tenant_id is required.')
+        if validated_body.account_type == 'service':
+            if not hasattr(validated_body, 'target_site_id'):
+                raise errors.ResourceError(msg="Invalid POST data: target_site_id required for creating tokens of type 'service'.")
         logger.debug(f"got token_tenant_id: {token_tenant_id}")
         if not token_tenant_id in conf.tenants:
             raise errors.ResourceError(msg=f'Invalid POST data: token_tenant_id ({token_tenant_id}) is not served by this Tokens API. tenants served: {conf.tenants}')
@@ -218,8 +221,8 @@ class SigningKeysResource(Resource):
         logger.info(f"tenant {tenant_id} has been updated with the new public key.")
         # update token's tenant cache with this private key for signing:
         logger.debug("updating token cache...")
-        for tenant in tenants.tenants:
-            if tenant.tenant_id == tenant_id:
+        for t_id, tenant in tenants.tenants.items():
+            if t_id == tenant_id:
                 tenant.private_key = private_key
         result = {'public_key': public_key}
         return utils.ok(result=result, msg="Tenant signing keys update successful.")
