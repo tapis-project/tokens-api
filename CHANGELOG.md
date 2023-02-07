@@ -1,6 +1,19 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 1.2.4 - 2023-02-07
+This release fixes an issue with the update signing keys endpoint (PUT /v3/tokens/eys)
+
+### Breaking Changes:
+- None.
+
+### New features:
+- None. 
+
+### Bug fixes:
+- Fixed an issue where PUT /tokens/keys results in exception even though key is updated (issue #6)
+.
+
 ## 1.2.3 - 2022-09-15
 This release prevents user tokens from being generated in the site-admin tenant. 
 
