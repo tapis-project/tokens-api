@@ -12,6 +12,7 @@ previously released.
 
 ### New features:
 - Add support for Token Revocation.
+- Add support for configuring Tokens to serve all tenants at a site via the `tenants: ["*"]` configuration.
 
 ### Bug fixes:
 - Fixes an issue with the update signing keys endpoint (PUT /v3/tokens/eys) (originally released in 1.2.4)
