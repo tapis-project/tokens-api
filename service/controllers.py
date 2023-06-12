@@ -9,8 +9,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask import request
 from flask_restful import Resource
 import requests
-from openapi_core.shortcuts import RequestValidator
-from openapi_core.wrappers.flask import FlaskOpenAPIRequest
+from openapi_core import openapi_request_validator
+from openapi_core.contrib.flask import FlaskOpenAPIRequest
 from tapisservice.config import conf
 from tapisservice import auth, errors
 from tapisservice.tapisflask import utils
@@ -31,8 +31,7 @@ class TokensResource(Resource):
     """
     def post(self):
         logger.debug("top of  POST /tokens")
-        validator = RequestValidator(utils.spec)
-        validated = validator.validate(FlaskOpenAPIRequest(request))        
+        validated = openapi_request_validator.validate(utils.spec, FlaskOpenAPIRequest(request))
         if validated.errors:
             raise errors.ResourceError(msg=f'Invalid POST data: {validated.errors}.')
         validated_body = validated.body
@@ -81,8 +80,7 @@ class TokensResource(Resource):
 
     def put(self):
         logger.debug("top of  PUT /tokens")
-        validator = RequestValidator(utils.spec)
-        validated = validator.validate(FlaskOpenAPIRequest(request))
+        validated = openapi_request_validator.validate(utils.spec, FlaskOpenAPIRequest(request))
         if validated.errors:
             raise errors.ResourceError(msg=f'Invalid PUT data: {validated.errors}.')
         refresh_token = validated.body.refresh_token
@@ -157,8 +155,7 @@ class RevokeTokensResource(Resource):
     """
     def post(self):
         logger.debug("top of POST /tokens/revoke")
-        validator = RequestValidator(utils.spec)
-        validated = validator.validate(FlaskOpenAPIRequest(request))        
+        validated = openapi_request_validator.validate(utils.spec, FlaskOpenAPIRequest(request))
         if validated.errors:
             raise errors.ResourceError(msg=f'Invalid POST data: {validated.errors}.')
         validated_body = validated.body
@@ -199,8 +196,7 @@ class SigningKeysResource(Resource):
 
     def put(self):
         logger.debug("top of  PUT /tokens/keys")
-        validator = RequestValidator(utils.spec)
-        validated = validator.validate(FlaskOpenAPIRequest(request))
+        validated = openapi_request_validator.validate(utils.spec, FlaskOpenAPIRequest(request))
         if validated.errors:
             raise errors.ResourceError(msg=f'Invalid PUT data: {validated.errors}.')
         tenant_id = validated.body.tenant_id
