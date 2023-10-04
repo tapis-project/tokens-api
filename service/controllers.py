@@ -3,6 +3,7 @@ from email import header
 import resource
 import traceback
 import uuid
+import json
 from flask import Flask
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -30,8 +31,55 @@ class TokensResource(Resource):
     Work with Tapis Tokens
     """
     def post(self):
-        logger.debug("top of  POST /tokens")
-        validated = openapi_request_validator.validate(utils.spec, FlaskOpenAPIRequest(request))
+        logger.debug("top of POST /tokens")
+        try:
+            # This is a decently ugly hack.
+            # Issue:
+            # Spec declares createToken claims as an free object. https://github.com/python-openapi/openapi-core/issues/430
+            # This unfortunately does not validate properly.
+            # Solution Attempts:
+            # - Move to 0.16.1 as it's fixed. Dataclasses are tossed for models and the validated object would not be accessible
+            #   in the way we currently use it. validated.body would be validated['body']. I don't wanna break the codebases.
+            # - 0.17.0 also has issues. New is 0.18.0, I haven't tried it yet. Could be a solution.
+            # - We could also just not validate the claims object. Nah.
+            # Solution:
+            # Pop claims from the request object, validate, then put it back in. This is what we're doing.
+            # To note:
+            # - Modifying request.data or request.json does nothing as FlaskOpenAPIRequest.super() runs request.get_data(as_text=True)
+            #   and that reads unbuffered data. I attempted to override this function, but it's essential to the request object.
+            # - End solution was to override FlaskOpenAPIRequest.body to return request.data.
+            # - Meaning we pop claims, and add them back to the validated object afterwards in order to make no changes to any other code.
+
+            # Override body to return request.data
+            @property
+            def custom_body(self, *args, **kwargs):
+                return self.request.data
+            FlaskOpenAPIRequest.body = custom_body
+
+            # Regular logic
+            # Pop claims and set request.data to data without claims
+            request_json_without_claims = copy.deepcopy(request.json)
+            popped_claims = None
+            if 'claims' in request_json_without_claims:
+                popped_claims = request_json_without_claims.get('claims')
+                del request_json_without_claims['claims']
+            request.data = json.dumps(request_json_without_claims)
+
+            # debug logs
+            # logger.debug(f"request.json: {request.json}")
+            # logger.debug(f"request.popped: {request.json.get('claims')}")
+            # logger.debug(f"request.data: {request.data}")
+
+            validated = openapi_request_validator.validate(utils.spec, FlaskOpenAPIRequest(request))
+
+            # Add claims back in
+            logger.debug(f"validated: {validated}")
+            if popped_claims:
+                validated.body.claims = popped_claims
+        except Exception as e:
+            logger.error(f"Got exception trying to validate request: {e}")
+            raise errors.ResourceError(msg=f'Invalid POST data: {e}.')
+        
         if validated.errors:
             raise errors.ResourceError(msg=f'Invalid POST data: {validated.errors}.')
         validated_body = validated.body
