@@ -1,6 +1,26 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 1.3.0 - 2023-03-12
+This production point release adds support for Token Revocation in addition to bug
+fixes.
+NOTE: This version of Authenticator depends on the Site Router API for Token revocation, not
+previously released. 
+
+### Breaking Changes:
+- None; Site Router is now required for revocation endpoints to function.
+
+### New features:
+- Add support for Token Revocation.
+- Add support for configuring Tokens to serve all tenants at a site via the `tenants: ["*"]` configuration.
+
+### Bug fixes:
+- Fixes an issue with the update signing keys endpoint (PUT /v3/tokens/eys) (originally released in 1.2.4)
+- Tokens API will no longer generate user tokens in the site-admin tenant. (originally released in 1.2.3)
+- Fix issue where the JTI returned in JSON response did not match that of the generated refresh token 
+in a response to POST requests generating refresh tokens. (originally released in 1.2.2).
+
+
 ## 1.2.4 - 2023-02-07
 This release fixes an issue with the update signing keys endpoint (PUT /v3/tokens/eys)
 

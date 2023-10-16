@@ -27,9 +27,15 @@ class TokensTenants(TenantCache):
         # the name of the attribute that has the private key for the site admin tenant is: site_admin_privatekey        
         logger.debug(f"top of extend_tenant for tenant: {t.tenant_id}")
         tenant_id = t.tenant_id
-        if not tenant_id in conf.tenants:
-            logger.debug(f"skipping tenant_id: {tenant_id} as it is not in the list of tenants.")
+        # Tokens API never serves tenants owned at a different site:
+        if not t.site_id == conf.service_site_id:
+            logger.debug(f"skipping tenant_id: {tenant_id} as it is owned by site {t.site_id} and this tokens is serving site {conf.service_site_id}.")
             return t
+        # if this is not a tenant that this tokens is supposed to serve, then just return immediately
+        if not conf.tenants[0] == "*":
+            if not tenant_id in conf.tenants:
+                logger.debug(f"skipping tenant_id: {tenant_id} as it is not in the list of tenants.")
+                return t
         try:
             t.private_key = conf.site_admin_privatekey
         except Exception as e:
@@ -37,6 +43,10 @@ class TokensTenants(TenantCache):
                      "It was looking for an attribute called site_admin_privatekey. Here is the conf object: {conf}."
             logger.error(msg)
             raise e
+        # first, be sure to add the actual tenant_id to the conf.tenants attribute, because it may only have
+        # a "*" and we need to know all the tenants we are actually serving:
+        if not tenant_id in conf.tenants:
+            conf.tenants.append(tenant_id)        
         t.access_token_ttl = conf.dev_default_access_token_ttl
         t.refresh_token_ttl = conf.dev_default_refresh_token_ttl
         return t
