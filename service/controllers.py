@@ -4,7 +4,7 @@ import resource
 import traceback
 import uuid
 import json
-from flask import Flask
+from flask import Flask, g
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask import request
@@ -25,6 +25,30 @@ from service import tenants
 from tapisservice.logs import get_logger
 logger = get_logger(__name__)
 
+class OIDCMetadataResource(Resource):
+    """
+    Provides the OIDC .well-known endpoint.
+    """
+    def get(self):
+        logger.info("top of GET /v3/tokens/.well-known/openid-configuration")
+        tenant_id = g.request_tenant_id
+        logger.debug(f"/.well-known/openid-configuration: tenant_id: {tenant_id}; request_base_url: {request.base_url}")
+        ## This is not getting a cached tenant object as tokens doesn't have that code.
+        ## Reduplicating code is odd. Potential issue is that allowable_grant_types is hardcoded here.
+        tenant = tenants.get_tenant_config(tenant_id=tenant_id)
+        allowable_grant_types = json.dumps(["password", "implicit", "authorization_code", "refresh_token", "device_code"])
+        base_url = tenant.base_url
+        metadata = {
+            'issuer': f'{base_url}/v3/tokens',
+            'authorization_endpoint': f'{base_url}/v3/oauth2/authorize',
+            'token_endpoint': f'{base_url}/v3/oauth2/tokens/oidc?oidc=true',
+            'jwks_uri': f'{base_url}/v3/oauth2/jwks',
+            'registration_endpoint': f'{base_url}/v3/oauth2/clients',
+            'grant_types_supported': allowable_grant_types,
+            'userinfo_endpoint': f'{base_url}/v3/oauth2/userinfo/oidc',
+            'claims_supported': ['sub', 'iss', 'username', 'email', 'given_name', 'family_name', 'preferred_username']
+        }
+        return metadata #utils.ok(result=metadata, msg='OAuth OIDC metadata retrieved successfully.')
 
 class TokensResource(Resource):
     """
@@ -127,7 +151,7 @@ class TokensResource(Resource):
         return utils.ok(result=result, msg="Token generation successful.")
 
     def put(self):
-        logger.debug("top of  PUT /tokens")
+        logger.debug("top of PUT /tokens")
         validated = openapi_request_validator.validate(utils.spec, FlaskOpenAPIRequest(request))
         if validated.errors:
             raise errors.ResourceError(msg=f'Invalid PUT data: {validated.errors}.')

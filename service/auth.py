@@ -122,6 +122,12 @@ def authn_and_authz():
         if 'Authorization' in request.headers and 'X-Tapis-Token' in request.headers:
             raise common_errors.BaseTapisError("Invalid request: both X-Tapis-Token and HTTP Basic Auth headers set; please set only one.")
 
+        # quick check before true tokens endpoints. This endpoint takes requests from anywhere and only needs to set correct tenant_id
+        if "tokens/.well-known/openid-configuration" in request.url_rule.rule:
+            logger.debug("request to get OIDC /.well-known/openai-configuration; setting tenant_id and returning.")
+            resolve_tenant_id_for_request()
+            return True
+
         # first check if this is a request to update the token signing keys
         if 'tokens/keys' in request.url_rule.rule:
             # check for a Tapis token

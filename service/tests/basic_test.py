@@ -311,4 +311,11 @@ def test_revoke_token(client):
     assert response.status_code == 400
 
 
-
+def test_oidc_well_known_openid_configuration(client):
+    with client:        
+        response = client.get('http://localhost:5000/v3/tokens/.well-known/openid-configuration')
+        print(response.data)
+        assert response.status_code == 200
+        assert 'issuer' in response.json
+        assert 'jwks_uri' in response.json
+        assert 'https://dev.develop.tapis.io/v3/tokens' in response.json['issuer'] # true so long as default tenant is `dev`
