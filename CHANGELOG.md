@@ -1,6 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 1.8.2 - 2025-02-12
+This release provides utilities for OIDC auth with ./well-known/openid-configuration endpoint.
+
+### Breaking Changes:
+- None.
+
+### New features:
+- OIDCMetadataResource endpoint and tests. 
+
+### Bug fixes:
+- None.
+
 ## 1.3.0 - 2023-03-12
 This production point release adds support for Token Revocation in addition to bug
 fixes.
@@ -31,8 +43,7 @@ This release fixes an issue with the update signing keys endpoint (PUT /v3/token
 - None. 
 
 ### Bug fixes:
-- Fixed an issue where PUT /tokens/keys results in exception even though key is updated (issue #6)
-.
+- Fixed an issue where PUT /tokens/keys results in exception even though key is updated (issue #6).
 
 ## 1.2.3 - 2022-09-15
 This release prevents user tokens from being generated in the site-admin tenant. 
