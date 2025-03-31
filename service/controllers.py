@@ -45,7 +45,7 @@ class OIDCMetadataResource(Resource):
             'issuer': f'{base_url}/v3/tokens',
             'authorization_endpoint': f'{base_url}/v3/oauth2/authorize',
             'token_endpoint': f'{base_url}/v3/oauth2/tokens/oidc?oidc=true',
-            'jwks_uri': f'{base_url}/v3/oauth2/jwks',
+            'jwks_uri': f'{base_url}/v3/tokens/.well-known/jwks.json',
             'registration_endpoint': f'{base_url}/v3/oauth2/clients',
             'grant_types_supported': allowable_grant_types,
             'userinfo_endpoint': f'{base_url}/v3/oauth2/userinfo/oidc',
