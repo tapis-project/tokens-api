@@ -20,6 +20,8 @@ from service.auth import check_extra_claims, check_authz_private_keypair, genera
 from service.models import TapisAccessToken, TapisRefreshToken
 from service import tenants
 
+from jwcrypto import jwk
+
 
 # get the logger instance -
 from tapisservice.logs import get_logger
@@ -49,6 +51,27 @@ class OIDCMetadataResource(Resource):
             'claims_supported': ['sub', 'iss', 'username', 'email', 'given_name', 'family_name', 'preferred_username']
         }
         return metadata #utils.ok(result=metadata, msg='OAuth OIDC metadata retrieved successfully.')
+
+class OIDCJWKSResource(Resource):
+    """
+    Provides the OIDC jwks .well-known endpoint.
+    """
+    def get(self):
+        logger.info("top of GET /v3/tokens/.well-known/jwks.json")
+        # tenant_id = g.request_tenant_id
+        tenant_id = conf.service_tenant_id
+        tenant = t.tenant_cache.get_tenant_config(tenant_id=tenant_id)
+        # base_url = tenant.base_url
+        
+        # unpack jwks info from tenant public key
+        pem_key = tenant.public_key
+        key = jwk.JWK.from_pem(pem_key.encode('utf-8'))
+        jwk_json = key.export(as_dict=True)
+
+        json_response = {
+            'keys': [jwk_json]
+        }
+        return json_response
 
 class TokensResource(Resource):
     """

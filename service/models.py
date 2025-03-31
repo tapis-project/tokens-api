@@ -2,6 +2,8 @@ import datetime
 import jwt
 import uuid
 
+from jwcrypto import jwk
+
 from tapisservice.errors import DAOError
 
 from service import tenants, errors
@@ -30,6 +32,7 @@ class TapisToken(object):
     # header ----
     typ = 'JWT'
     alg = None
+    kid = None
 
     # claims ----
     jti = None
@@ -50,6 +53,7 @@ class TapisToken(object):
         self.alg = alg
         if not self.alg == 'RS256':
             raise
+        self.kid = jwk.JWK.from_pem(tenants.get_tenant_config(tenant_id).public_key.encode('utf-8'))['kid']
 
         # input metadata ----
         self.ttl = ttl
@@ -78,7 +82,7 @@ class TapisToken(object):
         """
         tenant = tenants.get_tenant_config(self.tenant_id)
         private_key = tenant.private_key
-        self.jwt = jwt.encode(self.claims_to_dict(), private_key, algorithm=self.alg)
+        self.jwt = jwt.encode(self.claims_to_dict(), private_key, algorithm=self.alg, headers=self.jose_to_dict())
         return self.jwt
 
     @classmethod
@@ -129,6 +133,18 @@ class TapisAccessToken(TapisToken):
         self.target_site_id = target_site_id
         self.extra_claims = extra_claims
 
+    def jose_to_dict(self):
+        """
+        Returns a dictionary of JOSE headers.
+        :return:
+        """
+        d = {
+            'typ': self.typ,
+            'alg': self.alg,
+            'kid': self.kid
+        }
+        logger.debug(f'returning JOSE headers:: {d}')
+        return d
 
     def claims_to_dict(self):
         """
@@ -233,6 +249,19 @@ class TapisRefreshToken(TapisToken):
         result['ttl'] = refresh_token_ttl
         result['exp'] = TapisToken.compute_exp(refresh_token_ttl)
         return result
+
+    def jose_to_dict(self):
+        """
+        Returns a dictionary of JOSE headers.
+        :return:
+        """
+        d = {
+            'typ': self.typ,
+            'alg': self.alg,
+            'kid': self.kid
+        }
+        logger.debug(f'returning JOSE headers:: {d}')
+        return d
 
     def claims_to_dict(self):
         """

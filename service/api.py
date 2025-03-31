@@ -2,7 +2,7 @@ from tapisservice.tapisflask.utils import TapisApi, handle_error, flask_errors_d
 from tapisservice.tapisflask.resources import HelloResource, ReadyResource
 
 from service.auth import authn_and_authz
-from service.controllers import TokensResource, SigningKeysResource, RevokeTokensResource, OIDCMetadataResource
+from service.controllers import TokensResource, SigningKeysResource, RevokeTokensResource, OIDCMetadataResource, OIDCJWKSResource
 
 from service import app, db
 
@@ -23,6 +23,7 @@ api.handle_user_exception = handle_error
 
 # Health-checks
 api.add_resource(OIDCMetadataResource, '/v3/tokens/.well-known/openid-configuration')
+api.add_resource(OIDCJWKSResource, '/v3/tokens/.well-known/jwks.json')
 api.add_resource(ReadyResource, '/v3/tokens/ready')
 api.add_resource(HelloResource, '/v3/tokens/hello')
 

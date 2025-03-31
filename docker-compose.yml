@@ -5,6 +5,8 @@ version: "3.5"
 networks:
     tokens:
         driver: bridge
+    tapis:
+        external: true
 
 volumes:
     pgdata:
@@ -26,15 +28,19 @@ services:
 #
     tokens:
         image: tapis/tokens-api
-        ports:
-            - "5001:5000"
+        build:
+            context: .
+        env_file:
+            - ~/tmp/tapis/.kprice01-data/authenticator/env
+        # ports:
+        #     - "5001:5000"
         volumes:
             # uncomment one of the following ---
             - ./config-local.json:/home/tapis/config.json
             # - ./config-local-uh.json:/home/tapis/config.json
             - ./service.log:/home/tapis/service.log
         networks:
-            - tokens
+            - tapis
         environment:
             # an example of the allservices_password, only used in develop. generate a new one with
             # date +%s | sha256sum | base64 | head -c 32 ; echo or something similar.
