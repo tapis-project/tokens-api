@@ -72,7 +72,7 @@ class OIDCJWKSResource(Resource):
         except:
             pass
 
-        tenant_id = g.tenant_id
+        tenant_id = "tacc" # g.tenant_id
         tenant = t.tenant_cache.get_tenant_config(tenant_id=tenant_id)
         # base_url = tenant.base_url
         
