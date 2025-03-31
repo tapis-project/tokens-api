@@ -24,7 +24,7 @@ api.handle_user_exception = handle_error
 # Health-checks
 api.add_resource(OIDCMetadataResource, '/v3/tokens/.well-known/openid-configuration')
 api.add_resource(OIDCJWKSResource, '/v3/tokens/.well-known/jwks.json')
-api.add_resource(OIDCJWKSResource, '/v3/tokens/.well-known/jwks')
+#api.add_resource(OIDCJWKSResource, '/v3/tokens/.well-known/jwks')
 api.add_resource(ReadyResource, '/v3/tokens/ready')
 api.add_resource(HelloResource, '/v3/tokens/hello')
 
