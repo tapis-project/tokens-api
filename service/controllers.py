@@ -58,8 +58,21 @@ class OIDCJWKSResource(Resource):
     """
     def get(self):
         logger.info("top of GET /v3/tokens/.well-known/jwks.json")
-        # tenant_id = g.request_tenant_id
-        tenant_id = conf.service_tenant_id
+        
+        try:
+            logger.debug(f"conf.tenant_id: {conf.service_tenant_id}")
+        except:
+            pass
+        try:
+            logger.debug(f"g.tenant_id: {g.tenant_id}")
+        except:
+            pass
+        try:
+            logger.debug(f"g.request_tenant_id: {g.request_tenant_id}")
+        except:
+            pass
+
+        tenant_id = g.tenant_id
         tenant = t.tenant_cache.get_tenant_config(tenant_id=tenant_id)
         # base_url = tenant.base_url
         
@@ -72,6 +85,10 @@ class OIDCJWKSResource(Resource):
             'keys': [jwk_json]
         }
         return json_response
+
+
+
+
 
 class TokensResource(Resource):
     """
