@@ -34,7 +34,6 @@ class OIDCMetadataResource(Resource):
     def get(self):
         logger.info("top of GET /v3/tokens/.well-known/openid-configuration")
         tenant_id = g.request_tenant_id
-        tenant_id = 'tacc'
         logger.debug(f"/.well-known/openid-configuration: tenant_id: {tenant_id}; request_base_url: {request.base_url}")
         ## This is not getting a cached tenant object as tokens doesn't have that code.
         ## Reduplicating code is odd. Potential issue is that allowable_grant_types is hardcoded here.
@@ -59,21 +58,8 @@ class OIDCJWKSResource(Resource):
     """
     def get(self):
         logger.info("top of GET /v3/tokens/.well-known/jwks.json")
-        
-        try:
-            logger.debug(f"conf.tenant_id: {conf.service_tenant_id}")
-        except:
-            pass
-        try:
-            logger.debug(f"g.tenant_id: {g.tenant_id}")
-        except:
-            pass
-        try:
-            logger.debug(f"g.request_tenant_id: {g.request_tenant_id}")
-        except:
-            pass
-
-        tenant_id = "tacc" # g.tenant_id
+        # tenant_id = g.request_tenant_id
+        tenant_id = conf.service_tenant_id
         tenant = t.tenant_cache.get_tenant_config(tenant_id=tenant_id)
         # base_url = tenant.base_url
         
@@ -81,15 +67,16 @@ class OIDCJWKSResource(Resource):
         pem_key = tenant.public_key
         key = jwk.JWK.from_pem(pem_key.encode('utf-8'))
         jwk_json = key.export(as_dict=True)
+        # NOTE kprice 2025.3.31 Hard-code these for now. May need to update later if we ever support creating other types of tokens / other algorithms 
+        if 'alg' not in jwk_json:
+            jwk_json['alg'] = 'RS256'
+        if 'typ'not in jwk_json:
+            jwk_json['typ'] = 'JWT'
 
         json_response = {
             'keys': [jwk_json]
         }
         return json_response
-
-
-
-
 
 class TokensResource(Resource):
     """
