@@ -34,6 +34,7 @@ class OIDCMetadataResource(Resource):
     def get(self):
         logger.info("top of GET /v3/tokens/.well-known/openid-configuration")
         tenant_id = g.request_tenant_id
+        tenant_id = 'tacc'
         logger.debug(f"/.well-known/openid-configuration: tenant_id: {tenant_id}; request_base_url: {request.base_url}")
         ## This is not getting a cached tenant object as tokens doesn't have that code.
         ## Reduplicating code is odd. Potential issue is that allowable_grant_types is hardcoded here.
