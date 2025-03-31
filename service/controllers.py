@@ -60,7 +60,8 @@ class OIDCJWKSResource(Resource):
     def get(self):
         logger.info("top of GET /v3/tokens/.well-known/jwks.json")
         # tenant_id = g.request_tenant_id
-        tenant_id = conf.service_tenant_id
+        #tenant_id = conf.service_tenant_id
+        tenant_id = 'tacc'
         tenant = t.tenant_cache.get_tenant_config(tenant_id=tenant_id)
         # tenant_from_url = 
         logger.debug(f'computed tenant from url: {request.headers}')
