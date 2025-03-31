@@ -62,6 +62,8 @@ class OIDCJWKSResource(Resource):
         # tenant_id = g.request_tenant_id
         tenant_id = conf.service_tenant_id
         tenant = t.tenant_cache.get_tenant_config(tenant_id=tenant_id)
+        # tenant_from_url = 
+        logger.debug(f'computed tenant from url: {request.headers}')
         # base_url = tenant.base_url
         
         # unpack jwks info from tenant public key
