@@ -128,6 +128,11 @@ def authn_and_authz():
             resolve_tenant_id_for_request()
             return True
 
+        if "tokens/.well-known/jwks.json" in request.url_rule.rule:
+            logger.debug("request to get OIDC /.well-known/jwks.json; setting tenant_id and returning.")
+            resolve_tenant_id_for_request()
+            return True
+
         # first check if this is a request to update the token signing keys
         if 'tokens/keys' in request.url_rule.rule:
             # check for a Tapis token

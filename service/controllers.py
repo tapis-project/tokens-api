@@ -34,8 +34,13 @@ class OIDCMetadataResource(Resource):
     def get(self):
         logger.info("top of GET /v3/tokens/.well-known/openid-configuration")
         tenant_id = g.request_tenant_id
-        #tenant_id = 'tacc'
         logger.debug(f"/.well-known/openid-configuration: tenant_id: {tenant_id}; request_base_url: {request.base_url}")
+        
+        # In develop needed for spherex - using tacc tenant
+        # bookstack.pods.icicleai.tapis.io in prod also uses it. now using tacc tenant client
+        if "localhost" not in request.base_url:
+            tenant_id = 'tacc'
+
         ## This is not getting a cached tenant object as tokens doesn't have that code.
         ## Reduplicating code is odd. Potential issue is that allowable_grant_types is hardcoded here.
         tenant = tenants.get_tenant_config(tenant_id=tenant_id)
@@ -44,7 +49,7 @@ class OIDCMetadataResource(Resource):
         metadata = {
             'issuer': f'{base_url}/v3/tokens',
             'authorization_endpoint': f'{base_url}/v3/oauth2/authorize',
-            'token_endpoint': f'{base_url}/v3/oauth2/tokens/oidc?oidc=true',
+            'token_endpoint': f'{base_url}/v3/oauth2/tokens/oidc',
             'jwks_uri': f'{base_url}/v3/tokens/.well-known/jwks.json',
             'registration_endpoint': f'{base_url}/v3/oauth2/clients',
             'grant_types_supported': allowable_grant_types,
@@ -56,12 +61,18 @@ class OIDCMetadataResource(Resource):
 class OIDCJWKSResource(Resource):
     """
     Provides the OIDC jwks .well-known endpoint.
+    jwks endpoints much always match the tenant of the issuer and is generally pointed to by openid-configuration.
+    This is how verification of the token signature is done. Thus tenant must match.
     """
     def get(self):
         logger.info("top of GET /v3/tokens/.well-known/jwks.json")
-        # tenant_id = g.request_tenant_id
-        #tenant_id = conf.service_tenant_id
-        tenant_id = 'tacc'
+        tenant_id = g.request_tenant_id
+
+        # I haven't found anything on the request object that could get us tenant_id aside from a proper host or token input
+        # tmp alongside /openid-configuration
+        if "localhost" not in request.base_url:
+            tenant_id = 'tacc'
+
         tenant = t.tenant_cache.get_tenant_config(tenant_id=tenant_id)
         # tenant_from_url = 
         logger.debug(f'computed tenant from url: {request.headers}')
