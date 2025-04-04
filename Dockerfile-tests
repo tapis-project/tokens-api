@@ -1,5 +1,5 @@
 # Image: tapis/tokens-api-tests
-from tapis/tokens-api
+FROM tapis/tokens-api
 
 USER root
 ADD tests-requirements.txt /home/tapis/tests-requirements.txt

@@ -1,5 +1,5 @@
 # Image: tapis/keys-mgt
-from tapis/tokens-api
+FROM tapis/tokens-api
 
 WORKDIR /home/tapis
 USER root
