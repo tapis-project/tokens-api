@@ -40,7 +40,7 @@ class OIDCMetadataResource(Resource):
         # bookstack.pods.icicleai.tapis.io in prod also uses it. now using tacc tenant client
         if "localhost" not in request.base_url:
             tenant_id = 'tacc'
-        tenant_id = 'tacc'
+
         ## This is not getting a cached tenant object as tokens doesn't have that code.
         ## Reduplicating code is odd. Potential issue is that allowable_grant_types is hardcoded here.
         tenant = tenants.get_tenant_config(tenant_id=tenant_id)
@@ -72,7 +72,7 @@ class OIDCJWKSResource(Resource):
         # tmp alongside /openid-configuration
         if "localhost" not in request.base_url:
             tenant_id = 'tacc'
-        tenant_id = 'tacc'
+
         tenant = t.tenant_cache.get_tenant_config(tenant_id=tenant_id)
         # tenant_from_url = 
         logger.debug(f'computed tenant from url: {request.headers}')
