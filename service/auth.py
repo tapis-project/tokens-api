@@ -180,6 +180,7 @@ def authn_and_authz():
             except Exception as e:
                 logger.info(f"Got exception trying to parse JSON from request; e: {e}; type(e):{type(e)}")
                 raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?')
+            logger.debug(f"In auth.py POST method endpoints. tenant_id: {tenant_id}; username: {username}")
             # check for basic auth header:
             parts = get_basic_auth_parts()
             if parts:

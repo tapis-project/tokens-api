@@ -1,6 +1,19 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 1.8.3 - 2025-04-08
+This releases fixes a validation problem on some requests.
+
+### Breaking Changes:
+- None.
+
+### New features:
+- None.
+
+### Bug fixes:
+- Fixed some issues on requests without valid request data.
+- Updated tapisservice to 1.8.3. Fixes issue where we validated against servers in openapi spec while spec only contains dev servers. This broke passing `Host $host` in proxy.
+
 ## 1.8.2 - 2025-02-12
 This release provides utilities for OIDC auth with ./well-known/openid-configuration endpoint.
 

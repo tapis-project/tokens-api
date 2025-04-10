@@ -36,11 +36,6 @@ class OIDCMetadataResource(Resource):
         tenant_id = g.request_tenant_id
         logger.debug(f"/.well-known/openid-configuration: tenant_id: {tenant_id}; request_base_url: {request.base_url}")
         
-        # In develop needed for spherex - using tacc tenant
-        # bookstack.pods.icicleai.tapis.io in prod also uses it. now using tacc tenant client
-        if "localhost" not in request.base_url:
-            tenant_id = 'tacc'
-
         ## This is not getting a cached tenant object as tokens doesn't have that code.
         ## Reduplicating code is odd. Potential issue is that allowable_grant_types is hardcoded here.
         tenant = tenants.get_tenant_config(tenant_id=tenant_id)
@@ -67,11 +62,6 @@ class OIDCJWKSResource(Resource):
     def get(self):
         logger.info("top of GET /v3/tokens/.well-known/jwks.json")
         tenant_id = g.request_tenant_id
-
-        # I haven't found anything on the request object that could get us tenant_id aside from a proper host or token input
-        # tmp alongside /openid-configuration
-        if "localhost" not in request.base_url:
-            tenant_id = 'tacc'
 
         tenant = t.tenant_cache.get_tenant_config(tenant_id=tenant_id)
         # tenant_from_url = 
@@ -125,8 +115,8 @@ class TokensResource(Resource):
 
             # Regular logic
             # Pop claims and set request.data to data without claims
-            request_json_without_claims = copy.deepcopy(request.json)
             popped_claims = None
+            request_json_without_claims = copy.deepcopy(request.json)
             if 'claims' in request_json_without_claims:
                 popped_claims = request_json_without_claims.get('claims')
                 del request_json_without_claims['claims']
@@ -136,15 +126,19 @@ class TokensResource(Resource):
             # logger.debug(f"request.json: {request.json}")
             # logger.debug(f"request.popped: {request.json.get('claims')}")
             # logger.debug(f"request.data: {request.data}")
+            # logger.debug(f"utils.spec: {utils.spec.content()}") # it's possible to .pop or .update this. tapisservice does it for reference
 
             validated = openapi_request_validator.validate(utils.spec, FlaskOpenAPIRequest(request))
 
             # Add claims back in
             logger.debug(f"validated: {validated}")
             if popped_claims:
-                validated.body.claims = popped_claims
+                try:
+                    validated.body.claims = popped_claims
+                except Exception as e:
+                    logger.warning(f"Got exception trying to add claims back to validated body: {e} popped_claims: {popped_claims}, type(validated): {type(validated)}")
         except Exception as e:
-            logger.error(f"Got exception trying to validate request: {e}")
+            logger.error(f"Got exception trying to validate request: {e}, popped_claims: {popped_claims}")
             raise errors.ResourceError(msg=f'Invalid POST data: {e}.')
         
         if validated.errors:
