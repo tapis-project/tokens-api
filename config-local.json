@@ -1,11 +1,10 @@
 {
   "service_name": "tokens",
-  "primary_site_admin_tenant_base_url": "https://admin.develop.tapis.io",
-  "service_site_id": "tacc",
+  "primary_site_admin_tenant_base_url": "https://admin.kprice02.tacc.utexas.edu",
+  "service_site_id": "kprice02",
   "service_tenant_id": "admin",
   "use_sk": true,
   "tenants": ["dev", "admin"],
   "log_level": "DEBUG",
-  "use_allservices_password": true,
-  "site_admin_privatekey": "TODO -- update"
+  "use_allservices_password": true
 }

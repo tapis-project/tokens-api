@@ -3,8 +3,10 @@
 version: "3.5"
 
 networks:
-    tokens:
-        driver: bridge
+    # tokens:
+    #     driver: bridge
+    tapis:
+        external: true
 
 volumes:
     pgdata:
@@ -25,24 +27,29 @@ services:
 #            - tokens
 #
     tokens:
+        container_name: tokens-api
         image: tapis/tokens-api
-        ports:
-            - "5001:5000"
+        # ports:
+        #     - "5001:5000"
         volumes:
             # uncomment one of the following ---
             - ./config-local.json:/home/tapis/config.json
             # - ./config-local-uh.json:/home/tapis/config.json
             - ./service.log:/home/tapis/service.log
+        env_file: 
+            - ~/tmp/tapis/kprice02-data/tokens/env
         networks:
-            - tokens
-        environment:
+            # - 
+            - tapis
+        # environment:
             # an example of the allservices_password, only used in develop. generate a new one with
             # date +%s | sha256sum | base64 | head -c 32 ; echo or something similar.
-            - allservices_password=ZjM3YzdlYjI3OTYwYzZhN2FhMzcyMGNh
+            # - allservices_password=ZjM3YzdlYjI3OTYwYzZhN2FhMzcyMGNh
 #        depends_on:
 #            - postgres
 
     tokens-tests:
+        container_name: tokens-api-tests
         image: tapis/tokens-api-tests
         volumes:
             # uncomment one of the following ---
@@ -50,3 +57,5 @@ services:
             # - ./config-local-uh.json:/home/tapis/config.json
         environment:
             - allservices_password=ZjM3YzdlYjI3OTYwYzZhN2FhMzcyMGNh
+        env_file:
+            - ~/tmp/tapis/kprice02-data/tokens/env

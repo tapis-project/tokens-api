@@ -26,27 +26,27 @@ build: build.api build.test
 
 # ----- wipe the local environment by removing all containers
 clean:
-	docker-compose down
+	docker compose down
 
 # ----- start databases
 run_dbs: build.api clean
-	cd $(cwd); docker-compose up -d postgres
+	cd $(cwd); docker compose up -d postgres
 
 # ----- run tests
 
 test: build.test
-	cd $(cwd); touch service.log; docker-compose run $(api)-tests;
+	cd $(cwd); touch service.log; docker compose run $(api)-tests;
 
 # ----- connect to db as root
 connect_db:
-	docker-compose exec postgres psql -Upostgres
+	docker compose exec postgres psql -Upostgres
 
 # ----- initialize databases; run this target once per database installation
 init_dbs: run_dbs
 	echo "wait for db to start up..."
 	sleep 4
 	docker cp new_db.sql ${api}-api_postgres_1:/db.sql
-	docker-compose exec postgres psql -Upostgres -f /db.sql
+	docker compose exec postgres psql -Upostgres -f /db.sql
 
 # ----- wipe database and associated data
 wipe: clean
@@ -55,5 +55,5 @@ wipe: clean
 
 # ----- run migrations
 migrate.upgrade: build.migrations
-	docker-compose run --rm migrations upgrade
+	docker compose run --rm migrations upgrade
 	
