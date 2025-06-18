@@ -1,6 +1,18 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 1.8.4 - 2025-06-17
+This releases fixes a validation problem on some requests.
+
+### Breaking Changes:
+- None.
+
+### New features:
+- Updated to flaskbase:1.8.4
+
+### Bug fixes:
+- None.
+
 ## 1.8.3 - 2025-04-08
 This releases fixes a validation problem on some requests.
 
