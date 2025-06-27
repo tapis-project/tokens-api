@@ -23,10 +23,15 @@ build.test:
 
 build: build.api build.test
 
+# ----- run the api
+run: build
+	cd $(cwd); docker compose up -d tokens;
+
 
 # ----- wipe the local environment by removing all containers
 clean:
-	docker compose down
+	docker kill tokens-api;
+	docker compose down;
 
 # ----- start databases
 run_dbs: build.api clean
@@ -34,8 +39,8 @@ run_dbs: build.api clean
 
 # ----- run tests
 
-test: build.test
-	cd $(cwd); touch service.log; docker compose run $(api)-tests;
+test: build run
+	cd $(cwd); touch service.log; docker compose run --remove-orphans $(api)-tests;
 
 # ----- connect to db as root
 connect_db:

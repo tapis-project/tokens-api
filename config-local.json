@@ -5,6 +5,5 @@
   "service_tenant_id": "admin",
   "use_sk": true,
   "tenants": ["dev", "admin"],
-  "log_level": "DEBUG",
-  "use_allservices_password": true
+  "log_level": "DEBUG"
 }

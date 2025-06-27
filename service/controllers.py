@@ -89,6 +89,9 @@ class TokensResource(Resource):
     """
     def post(self):
         logger.debug("top of POST /tokens")
+        logger.debug("top of POST /tokens")
+        logger.debug("top of POST /tokens")
+        logger.debug("top of POST /tokens")
         logger.debug(f'request: {FlaskOpenAPIRequest}')
         try:
             # This is a decently ugly hack.
@@ -111,6 +114,7 @@ class TokensResource(Resource):
             # Override body to return request.data
             @property
             def custom_body(self, *args, **kwargs):
+                logger.debug(f'Setting custom body to {self.request.data}')
                 return self.request.data
             FlaskOpenAPIRequest.body = custom_body
 

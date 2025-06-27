@@ -4,8 +4,17 @@ import json
 import requests
 from unittest import TestCase
 from service.api import app
+from service.auth import get_tokens_tapis_client, validate_siteadmin_password
 from tapisservice import auth
 from tapisservice.config import conf
+
+# input just for testing::
+import tapipy
+import uuid
+from service.models import AccessTokenData, TapisAccessToken
+from service import tenants
+from tapipy.tapis import Tapis
+
 
 # These tests are intended to be run locally.
 
@@ -21,7 +30,6 @@ def test_invalid_post(client):
 
         assert response.status_code == 400
 
-
 def get_basic_auth_header():
     user_pass = bytes(f"tenants:{conf.allservices_password}", 'utf-8')
     return {'Authorization': 'Basic {}'.format(b64encode(user_pass).decode()),
@@ -29,7 +37,6 @@ def get_basic_auth_header():
 
 
 def test_valid_post(client):
-
     with client:
         payload = {
             "token_tenant_id": "admin",
@@ -322,3 +329,67 @@ def test_oidc_well_known_openid_configuration(client):
         assert 'jwks_uri' in response.json
         # assert 'https://dev.develop.tapis.io/v3/tokens' in response.json['issuer'] # true so long as default tenant is `dev`
         assert primary_site_dev_tenant_base_url in response.json['issuer'] # true so long as default tenant is `dev`
+
+## TODO: disabled for now. Need to change these values to get them from the environment of the test container rather than hard-coded like this. 
+## decided to skip these tests for now, since there isn't a good way to get them done yet.
+# def test_check_site_admin_credentials(client):
+#     # if this test is failing, need to manually add a site admin to the environment being tested. 
+#     # there isn't currently a way to do it through the cli
+   
+#     result = None
+#     result = validate_siteadmin_password('admin', 'username', 'password')
+#     assert result==True
+
+
+# def test_check_site_admin_incorrect_credentials(client):
+#     # if this test is failing, need to manually add a site admin to the environment being tested. 
+#     # there isn't currently a way to do it through the cli
+    
+#     result = None
+#     try:
+#         result = validate_siteadmin_password('admin', 'username', 'wrong_password')
+#         raise # this is supposed to fail, so if we get here it's a problem
+#     except Exception as e:
+#         pass # failing won't have a valid response since it's an internal method. Just pass on excpetions
+#     assert result != True # just in case
+
+    
+# def test_generate_site_admin_token(client):
+#     # create a dummy site admin account to use
+#     with client:
+#         b_auth = b64encode(bytes("username:password", 'utf-8')).decode()
+#         headers = {
+#             "Authorization": f"Basic {b_auth}",
+#             "Content-Type": "application/json"
+#         }
+#         payload = {
+#             "token_tenant_id": "admin",
+#             "account_type": "user",
+#             "token_username": "kprice"
+#         }
+
+#         response = client.post(
+#             "https://admin.kprice02.tacc.utexas.edu/v3/tokens",
+#             json=payload,
+#             headers=headers
+#         )
+#         print(f'had headers:: {headers}')
+#         print(f"response.data: {response.data}")
+#         assert response.status_code == 200
+#         # TODO:: check that the token exists? or verify it??
+        
+
+# def test_service_token_cant_create_service_token(client):
+#     # services cannot use their token to create tokens for other services (in an admin tenant)
+#     pass
+
+# def test_service_token_cant_create_user_in_admin(client):
+#     # services cannot use their token to create "user" tokens in the admin tenant
+#     pass
+
+# def test_service_token_cant_create_user_token_without_role(client):
+#     # services cannot use their token to create tokens for users in any user tenant except if they have the {tenant}_TOKEN_GENERATOR role.
+#     pass
+
+  
+
