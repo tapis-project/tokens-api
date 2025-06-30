@@ -25,6 +25,7 @@ services:
 #            - tokens
 #
     tokens:
+        container_name: tokens-api
         image: tapis/tokens-api
         ports:
             - "5001:5000"
@@ -43,6 +44,7 @@ services:
 #            - postgres
 
     tokens-tests:
+        container_name: tokens-api-tests
         image: tapis/tokens-api-tests
         volumes:
             # uncomment one of the following ---
@@ -50,3 +52,5 @@ services:
             # - ./config-local-uh.json:/home/tapis/config.json
         environment:
             - allservices_password=ZjM3YzdlYjI3OTYwYzZhN2FhMzcyMGNh
+        networks:
+            - tokens

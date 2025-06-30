@@ -1,4 +1,6 @@
 cryptography
 python-dateutil
-tapipy
+tapipy==1.8.4
 jwcrypto
+make
+poetry

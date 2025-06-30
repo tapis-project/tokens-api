@@ -9,6 +9,7 @@ from service.errors import InvalidTokenClaimsError
 from service.models import AccessTokenData, TapisAccessToken
 from service import tenants
 
+
 # get the logger instance -
 from tapisservice.logs import get_logger
 logger = get_logger(__name__)
@@ -62,7 +63,9 @@ def get_tokens_tapis_client():
     t = get_service_tapis_client(tenant_id=conf.service_tenant_id,
                                  jwt=our_admin_jwt,
                                  tenants=tenants,
-                                 generate_tokens=False)
+                                 generate_tokens=False,
+                                 resource_set='dev',
+                                 spec_dir='/home/tapis/tapipy_specs')
 
     # attach our service_tokens to the client and return --
     t.service_tokens = service_tokens
@@ -192,10 +195,21 @@ def authn_and_authz():
                 if not tenant_id:
                     raise common_errors.AuthenticationError('Invalid POST data -- tenant_id missing from POST data.')
                 # do basic auth with SK and tapis client.
-                logger.debug("got parts, checking service password..")
-                check_service_password(tenant_id, parts['username'], parts['password'])
-                logger.debug("password was valid.")
-                return True
+                account_type = request.get_json().get('account_type')
+                try:
+                    json_data = request.get_json()
+                except Exception as e:
+                    raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?') 
+                if account_type == 'service':
+                    logger.debug("got parts, checking service password...")
+                    check_service_password(tenant_id, parts['username'], parts['password'])
+                    logger.debug("password was valid.")
+                    return True
+                if account_type == 'user' and request.get_json().get('token_tenant_id') == conf.service_tenant_id: # user in the "admin" tenant = site admin user
+                    logger.debug('got parts, checking site admin password...')
+                    validate_siteadmin_password(tenant_id, parts['username'], parts['password'])
+                    logger.debug("password was valid.")
+                    return True
             else:
                 # check for a Tapis token -- this call should put username and tenant on the g object
                 logger.debug("did not get parts, checking for tapis token..")
@@ -203,6 +217,7 @@ def authn_and_authz():
                 # if this is a request from a service to generate a token for itself, we do not need to check
                 # the SK role.
                 if username == g.username and tenant_id == g.tenant_id:
+                    logger.debug(f'received request for service {g.username} to generate its own token in {g.tenant_id}')
                     return True
 
                 # otherwise, this is a request to generate a token for a subject other than the service, so we need 
@@ -215,8 +230,9 @@ def authn_and_authz():
                 except Exception as e:
                     logger.info(f"Got exception trying to parse JSON from Tapis token request; e: {e}; type(e):{type(e)}")
                     raise common_errors.AuthenticationError('Unable to parse message payload; is it JSON?') 
-                if not account_type == 'service' and tenant_id == conf.service_tenant_id:
-                    raise common_errors.AuthenticationError('Invalid request -- only service tokens can be generated in the site-admin tenant.')
+                # NOTE: removed restriction to be able to create site-admin users
+                # if not account_type == 'service' and tenant_id == conf.service_tenant_id:
+                #     raise common_errors.AuthenticationError('Invalid request -- only service tokens can be generated in the site-admin tenant.')
                 
                 try:
                     tenant_id = request.get_json().get('token_tenant_id')
@@ -247,6 +263,7 @@ def authn_and_authz():
                     raise common_errors.PermissionsError(msg=f'Not authorized to generate tokens in tenant {tenant_id}.')
                 logger.debug(f"user {g.username} WAS fond in role {role_name} in tenant {admin_tenant}. APPROVING request.")
                 return True
+        logger.debug(f'we shouldnt be here')
 
 
 def get_basic_auth_parts():
@@ -294,7 +311,7 @@ def check_service_password(tenant_id, username, password):
 
     try:
         result = t.sk.validateServicePassword(secretType='service',
-                                              secretName= 'password',
+                                              secretName='password',
                                               tenant=tenant_id,
                                               user=username,
                                               password=password,
@@ -312,6 +329,27 @@ def check_service_password(tenant_id, username, password):
         logger.debug(f"got isAuthorized==False from call to validateServicePassword. Full result: {result}")
         raise common_errors.AuthenticationError(msg='Tokens API got isAuthorized=False from SK.')
 
+def validate_siteadmin_password(tenant_id, username, password, client=t):
+    logger.debug(f'~~~ tenant id: {tenant_id}, username: {username}, pass: {password}')
+    try:
+        result = client.sk.validateSiteAdminPassword(
+            secretType='siteadmin',
+            secretName='password',
+            tenant=tenant_id,
+            user=username,
+            password=password,
+            _tapis_set_x_headers_from_service=True
+        )
+    except tapipy.errors.InvalidInputError as e:
+        logger.info(f"Got InvalidInputError trying to check site admin password inside SK secretMap. Exception: {e}")
+        raise common_errors.AuthenticationError(msg='Invalid site admin account/password combination. Site admin account may not be registered with SK.')
+    except Exception as e:
+        logger.error(f'Got exception checking site admin password: {e}')
+        raise common_errors.AuthenticationError(msg='Tokens API got an error trying to contact SK to validate site admin secret.')
+    if not result.isAuthorized:
+        logger.debug(f"got isAuthorized==False from call to validateSiteAdminPassword. Full result: {result}")
+        raise common_errors.AuthenticationError(msg='Tokens API got isAuthorized=False from SK.')
+    return result.isAuthorized
 
 def check_extra_claims(extra_claims):
     """
