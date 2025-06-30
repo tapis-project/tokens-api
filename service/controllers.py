@@ -89,10 +89,6 @@ class TokensResource(Resource):
     """
     def post(self):
         logger.debug("top of POST /tokens")
-        logger.debug("top of POST /tokens")
-        logger.debug("top of POST /tokens")
-        logger.debug("top of POST /tokens")
-        logger.debug(f'request: {FlaskOpenAPIRequest}')
         try:
             # This is a decently ugly hack.
             # Issue:
