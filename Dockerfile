@@ -1,9 +1,6 @@
 # image: tapis/tokens-api
 FROM tapis/flaskbase:1.8.4
 
-
-RUN echo python version:: | python3 --version
-
 ADD requirements.txt /home/tapis/requirements.txt
 RUN pip install -r /home/tapis/requirements.txt
 
