@@ -1,4 +1,8 @@
 # Tapis Tokens API
+[![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/tapis-project/tokens-api?label=git%20tag)](https://github.com/tapis-project/tokens-api/tags)
+[![Docker Image](https://img.shields.io/docker/v/tapis/tokens-api?label=img&sort=semver)](https://hub.docker.com/r/tapis/tokens-api/tags)
+[![docs](https://img.shields.io/badge/docs-grey)](https://tapis.readthedocs.io/en/latest/technical/authentication.html#id2)
+[![live-docs](https://img.shields.io/badge/live--docs-grey)](https://tapis-project.github.io/live-docs/?service=Tokens)
 
 REST API for working with authentication tokens for the Tapis v3 Platform.
 

@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 1.9.0 - 2025-07-07
+### Breaking Changes:
+- None.
+
+### New features:
+- validate_siteadmin_password added
+- Updated to flaskbase:1.9.0
+
+### Bug fixes:
+- None.
+
 ## 1.8.4 - 2025-06-17
 This releases fixes a validation problem on some requests.
 
@@ -37,6 +48,12 @@ This release provides utilities for OIDC auth with ./well-known/openid-configura
 
 ### Bug fixes:
 - None.
+
+## 1.4.0 - 2023-06-12
+Updated tapisservice and changes that came with that. Incremental update.
+
+### Breaking Changes:
+- None
 
 ## 1.3.0 - 2023-03-12
 This production point release adds support for Token Revocation in addition to bug
