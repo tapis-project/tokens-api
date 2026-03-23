@@ -1,6 +1,26 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## 26Q1
+### Breaking Changes:
+- None.
+
+### New features:
+- None. Bumping version.
+
+### Bug fixes:
+- None.
+
+## 25Q4
+### Breaking Changes:
+- None.
+
+### New features:
+- None. Bumping version.
+
+### Bug fixes:
+- None.
+
 ## 1.9.0 - 2025-07-07
 ### Breaking Changes:
 - None.
